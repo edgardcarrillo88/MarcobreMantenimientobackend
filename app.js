@@ -4,6 +4,7 @@ const dbconnect = require("./database")
 const cors = require('cors')
 const app = express()
 const formcontroller = require('./routes/data')
+const filecontroller = require('./routes/files')
 const path = require('path')
 
 dbconnect(app)
@@ -17,5 +18,6 @@ app.use(cors({credentials: true}))
 app.use(express.json())
 
 app.use('/api/v1/data',formcontroller)
+app.use('/api/v1/files',filecontroller) 
 
 app.use(express.static(path.join(__dirname,'public')))
