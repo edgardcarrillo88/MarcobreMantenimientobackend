@@ -2,6 +2,7 @@ const xlsx = require('xlsx');
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
 const failformmodel = require('../models/failform')
+const dailyreportmodel = require('../models/dailyreport')
 const mongoose = require('mongoose')
 
 const uploadexcel = (req, res) => {
@@ -51,7 +52,6 @@ const uploadexcel = (req, res) => {
         })
 }
 
-
 const registerform = async (req, res) => {
 
     //Determinar el ID
@@ -62,10 +62,10 @@ const registerform = async (req, res) => {
 
     const images = req.files.map(file => {
         return {
-          data: file.buffer,
-          contentType: file.mimetype
+            data: file.buffer,
+            contentType: file.mimetype
         };
-      });
+    });
 
     const initaldata = JSON.parse(req.body.initaldata);
 
@@ -107,14 +107,88 @@ const registerform = async (req, res) => {
 
 }
 
+const dailyreport = async (req, res) => {
+
+    //Determinar el ID
+    console.log("ejecutando register daily report");
+
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+    console.log('req.photos:', req.photos);
+
+    const files = req.files.files.map(file => {
+        return {
+            data: file.buffer,
+            contentType: file.mimetype
+        };
+    });
+
+    const photos = req.files.photos.map(file => {
+        return {
+            data: file.buffer,
+            contentType: file.mimetype
+        };
+    });
+
+    const initaldata = JSON.parse(req.body.initaldata);
+
+    const lastRecord = await dailyreportmodel.findOne().sort({ Id: -1 }).limit(1);
+    const newCount = (lastRecord && lastRecord.Id) ? lastRecord.Id + 1 : 1;
+    initaldata.Id = newCount
+
+    // //Transformar el formato fecha de la categoría "Principal"
+    let newinicio;
+
+    if (initaldata.FechaInicio) {
+        const [fechainicio, horainicio] = initaldata.FechaInicio.split('T');
+        const [anhoinicio, mesinicio, diainicio] = fechainicio.split('-');
+        const [horasinicio, minutosinicio] = horainicio.split(':');
+        newinicio = `${diainicio}/${mesinicio}/${anhoinicio}, ${horasinicio}:${minutosinicio}`;
+    }
+
+    initaldata.FechaInicio = newinicio
 
 
+    let newfin;
+
+    if (initaldata.FechaFin) {
+        const [fechafin, horafin] = initaldata.FechaFin.split('T');
+        const [anhofin, mesfin, diafin] = fechafin.split('-');
+        const [horasfin, minutosfin] = horafin.split(':');
+        newfin = `${diafin}/${mesfin}/${anhofin}, ${horasfin}:${minutosfin}`;
+    }
+
+    initaldata.FechaFin = newfin
+
+    const listacomponentes = JSON.parse(req.body.listacomponentes || '[]');
+
+    //Guardando la información de categoría "Principal"
+    const dataPrincipal = new dailyreportmodel({
+        ...initaldata,
+        listacomponentes,
+        Id: newCount,
+        files,
+        photos
+    });
+    await dataPrincipal.save();
+    res.status(200).json(dataPrincipal)
+
+}
 
 const getalldata = async (req, res) => {
 
     console.log("ejecutando get all data");
     const data = await failformmodel.find({})
-    console.log(data);
+    // console.log(data);
+    res.status(200).json(data)
+
+}
+
+const getalldatadailyreport = async (req, res) => {
+
+    console.log("ejecutando get all data");
+    const data = await dailyreportmodel.find({})
+    // console.log(data);
     res.status(200).json(data)
 
 }
@@ -122,9 +196,9 @@ const getalldata = async (req, res) => {
 const getsingledata = async (req, res) => {
 
     console.log("ejecutando get single data");
-    console.log(req.query.Id);
+    // console.log(req.query.Id);
     const data = await failformmodel.findOne({ Id: req.query.Id })
-    console.log(data);
+    // console.log(data);
     res.status(200).json(data)
 
 }
@@ -149,7 +223,6 @@ const getfiltersdata = async (req, res) => {
 
     res.status(200).json({ data })
 }
-
 
 const getscheduledata = async (req, res) => {
     console.log("ejecutando request getalldata");
@@ -223,5 +296,7 @@ module.exports = {
     getscheduledata,
     statusupdate,
     uploadexcel,
-    filtereddata
+    filtereddata,
+    dailyreport,
+    getalldatadailyreport
 }
