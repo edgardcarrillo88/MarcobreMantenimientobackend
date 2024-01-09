@@ -18,4 +18,6 @@ datarouter.get('/schedule',datacontroller.getscheduledata)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
 datarouter.get('/filtereddata',datacontroller.filtereddata)
 
+datarouter.put('/updatedata',datacontroller.updatedata)
+
 module.exports = datarouter

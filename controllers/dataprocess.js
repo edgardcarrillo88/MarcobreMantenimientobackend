@@ -288,6 +288,63 @@ const filtereddata = async (req, res) => {
     res.status(200).json(data[0])
 }
 
+const updatedata = async (req, res) => {
+    const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente } = req.body;
+
+    // let newinicio;
+    // let newfin;
+
+    const formatearFecha = (fecha) => {
+        if (!fecha) return null;
+        const [fechaParte, horaParte] = fecha.split('T');
+        const [anio, mes, dia] = fechaParte.split('-');
+        const [hora, minutos] = horaParte.split(':');
+        return `${dia}/${mes}/${anio}, ${hora}:${minutos}`;
+    };
+
+    const newinicio = formatearFecha(inicio);
+    const newfin = formatearFecha(fin);
+
+    const data = await taskmodel.findByIdAndUpdate(id, {
+        $set: {
+            comentarios: comentario,
+            inicioreal: inicio,
+            finreal: fin,
+            avance: avance,
+            usuario: usuario,
+            lastupdate: lastupdate,
+            ActividadCancelada: ActividadCancelada
+        }
+    }, { new: true })
+
+    const updated = await updatemodel.find({ idtask })
+
+    if (updated) {
+        await Promise.all(updated.map(async (item) => {
+            await updatemodel.findByIdAndUpdate(item._id, {
+                $set: {
+                    vigente: "No"
+                }
+            })
+        }))
+    }
+
+    req.body.inicio = newinicio;
+    req.body.fin = newfin;
+    req.body.idtask = idtask;
+    const dataupdated = new updatemodel(req.body)
+    await dataupdated.save();
+
+    console.log("ejecutando request updatedata");
+    res.status(200).json(data)
+}
+
+const getdatahistory = async (req, res) => {
+    console.log("ejecutando get data history");
+    const data = await updatemodel.find({}).sort({ id: 1 })
+    res.status(200).json({ data })
+}
+
 module.exports = {
     registerform,
     getalldata,
@@ -298,5 +355,7 @@ module.exports = {
     uploadexcel,
     filtereddata,
     dailyreport,
-    getalldatadailyreport
+    getalldatadailyreport,
+    updatedata,
+    getdatahistory
 }
