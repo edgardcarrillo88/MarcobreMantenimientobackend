@@ -291,9 +291,6 @@ const filtereddata = async (req, res) => {
 const updatedata = async (req, res) => {
     const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente } = req.body;
 
-    // let newinicio;
-    // let newfin;
-
     const formatearFecha = (fecha) => {
         if (!fecha) return null;
         const [fechaParte, horaParte] = fecha.split('T');
