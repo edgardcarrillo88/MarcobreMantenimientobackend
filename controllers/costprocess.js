@@ -5,16 +5,19 @@ const mongoose = require('mongoose')
 const uploadexcel = (req, res) => {
 
     console.log("ejecutando carga de costos");
-
     const filepath = req.file.path
+    console.log(filepath);
     const workbook = xlsx.readFile(filepath)
+    console.log(workbook);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    console.log(worksheet);
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
     const dataPromises = excelData.map(async (rowData) => {
         try {
 
-               const data = new costmodel(rowData);
+            const data = new costmodel(rowData);
+            console.log(rowData.Title);
             await data.save();
 
         } catch (error) {
@@ -40,7 +43,19 @@ const getalldata = async (req, res) => {
 
 }
 
+const deleteall = async (req, res) => {
+    console.log("borrando todo");
+    costmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los documentos eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
 module.exports = {
     uploadexcel,
-    getalldata
+    getalldata,
+    deleteall
 }
