@@ -38,10 +38,18 @@ const uploadexcel = (req, res) => {
         })
 }
 
-const getalldata = async (req, res) => {
+const getalldataactual = async (req, res) => {
 
     console.log("ejecutando get all data");
     const data = await actualmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldatabudget = async (req, res) => {
+
+    console.log("ejecutando get all data");
+    const data = await budgetmodel.find({})
     res.status(200).json(data)
 
 }
@@ -70,7 +78,8 @@ const deleteallBudget = async (req, res) => {
 
 module.exports = {
     uploadexcel,
-    getalldata,
+    getalldataactual,
+    getalldatabudget,
     deleteallActual,
     deleteallBudget
 }
