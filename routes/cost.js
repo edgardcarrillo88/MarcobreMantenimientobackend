@@ -5,6 +5,6 @@ const filecontroller = require('../controllers/costprocess.js');
 
 filesrouter.post('/',Upload.single('file'),filecontroller.uploadexcel)
 filesrouter.get('/getalldata',filecontroller.getalldata)
-filesrouter.get('/delete',filecontroller.deleteall)
+filesrouter.post('/delete',filecontroller.deleteall)
 
 module.exports = filesrouter

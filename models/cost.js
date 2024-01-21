@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const costschema = mongoose.Schema({
+const actualschema = mongoose.Schema({
     Gerencia: String,
     Planta: String,
     Area: String,
@@ -9,6 +9,7 @@ const costschema = mongoose.Schema({
     CeCo: String,
     DescripcionCeCo: String,
     ClaseCosto: String,
+    DescripcionClaseCosto:String,
     Responsable: String,
     Especialidad: String,
     TAG: String,
@@ -32,5 +33,5 @@ const costschema = mongoose.Schema({
     })
 
 
-const cost = mongoose.model('cost', costschema, 'cost')
-module.exports = cost
+const actual = mongoose.model('actual', actualschema, 'actual')
+module.exports = actual

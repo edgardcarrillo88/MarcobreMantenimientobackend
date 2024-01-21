@@ -6,11 +6,8 @@ const uploadexcel = (req, res) => {
 
     console.log("ejecutando carga de costos");
     const filepath = req.file.path
-    console.log(filepath);
     const workbook = xlsx.readFile(filepath)
-    console.log(workbook);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    console.log(worksheet);
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
     const dataPromises = excelData.map(async (rowData) => {
