@@ -1,21 +1,27 @@
 const xlsx = require('xlsx');
-const costmodel = require('../models/cost')
+const actualmodel = require('../models/cost')
+const budgetmodel = require('../models/budget')
 const mongoose = require('mongoose')
 
 const uploadexcel = (req, res) => {
 
     console.log("ejecutando carga de costos");
     const filepath = req.file.path
+    console.log(req.body.type);
     const workbook = xlsx.readFile(filepath)
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
     const dataPromises = excelData.map(async (rowData) => {
         try {
-
-            const data = new costmodel(rowData);
-            console.log(rowData.Title);
-            await data.save();
+            if(req.body.type==="true"){
+                const data = new actualmodel(rowData);
+                await data.save();
+            }
+            else {
+                const data = new budgetmodel(rowData);
+                await data.save();
+            }
 
         } catch (error) {
             console.error('Error al guardar el dato:', error);
@@ -35,16 +41,27 @@ const uploadexcel = (req, res) => {
 const getalldata = async (req, res) => {
 
     console.log("ejecutando get all data");
-    const data = await costmodel.find({})
+    const data = await actualmodel.find({})
     res.status(200).json(data)
 
 }
 
-const deleteall = async (req, res) => {
+const deleteallActual = async (req, res) => {
     console.log("borrando todo");
-    costmodel.deleteMany({})
+    actualmodel.deleteMany({})
         .then(() => {
-            console.log('Todos los documentos eliminados correctamente');
+            console.log('Todos los datos del actual eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallBudget = async (req, res) => {
+    console.log("borrando todo");
+    budgetmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos del budget eliminados correctamente');
         })
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
@@ -54,5 +71,6 @@ const deleteall = async (req, res) => {
 module.exports = {
     uploadexcel,
     getalldata,
-    deleteall
+    deleteallActual,
+    deleteallBudget
 }
