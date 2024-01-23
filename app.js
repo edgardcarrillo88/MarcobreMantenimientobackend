@@ -13,7 +13,7 @@ dbconnect(app)
 // app.use(cors({credentials: true}))
 app.use(cors({
     origin: process.env.URL_PAGE, // Reemplaza con el origen correcto de tu frontend
-    credentials: true, // Permite el intercambio de cookies a través de las solicitudes
+    // credentials: true, // Permite el intercambio de cookies a través de las solicitudes
   }));
 app.use(express.json())
 
