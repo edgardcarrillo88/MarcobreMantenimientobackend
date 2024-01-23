@@ -11,10 +11,12 @@ const path = require('path')
 dbconnect(app)
 
 // app.use(cors({credentials: true}))
+
 app.use(cors({
-    origin: process.env.URL_PAGE, // Reemplaza con el origen correcto de tu frontend
-    // credentials: true, // Permite el intercambio de cookies a través de las solicitudes
+    origin: process.env.URL_PAGE,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   }));
+
 app.use(express.json())
 
 app.use('/api/v1/data',formcontroller)
