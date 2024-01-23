@@ -179,7 +179,6 @@ const getalldata = async (req, res) => {
 
     console.log("ejecutando get all data");
     const data = await failformmodel.find({})
-    // console.log(data);
     res.status(200).json(data)
 
 }
@@ -341,6 +340,7 @@ const getdatahistory = async (req, res) => {
     const data = await updatemodel.find({}).sort({ id: 1 })
     res.status(200).json({ data })
 }
+
 
 module.exports = {
     registerform,
