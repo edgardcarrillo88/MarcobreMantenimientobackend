@@ -6,9 +6,11 @@ const mongoose = require('mongoose')
 const uploadexcel = (req, res) => {
 
     console.log("ejecutando carga de costos");
-    const filepath = req.file.path
+    //const filepath = req.file.path
+    const bufferData = req.file.buffer;
     console.log(req.body.type);
-    const workbook = xlsx.readFile(filepath)
+    //const workbook = xlsx.readFile(filepath)
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
