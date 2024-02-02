@@ -9,4 +9,10 @@ filesrouter.get('/getalldatabudget',filecontroller.getalldatabudget)
 filesrouter.post('/deleteactual',filecontroller.deleteallActual)
 filesrouter.post('/deletebudget',filecontroller.deleteallBudget)
 
+filesrouter.post('/deleteactualplanta',filecontroller.deleteallActualplanta)
+filesrouter.post('/deletebudgetplanta',filecontroller.deleteallBudgetplanta)
+
+filesrouter.post('/deleteactualplanta',filecontroller.deleteallActualplanta)
+filesrouter.post('/deletebudgetplanta',filecontroller.deleteallBudgetplanta)
+
 module.exports = filesrouter
