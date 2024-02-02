@@ -12,7 +12,7 @@ filesrouter.post('/deletebudget',filecontroller.deleteallBudget)
 filesrouter.post('/deleteactualplanta',filecontroller.deleteallActualplanta)
 filesrouter.post('/deletebudgetplanta',filecontroller.deleteallBudgetplanta)
 
-filesrouter.post('/getalldataactualplanta',filecontroller.getalldataactualplanta)
-filesrouter.post('/getalldatabudgetplanta',filecontroller.getalldatabudgetplanta)
+filesrouter.get('/getalldataactualplanta',filecontroller.getalldataactualplanta)
+filesrouter.get('/getalldatabudgetplanta',filecontroller.getalldatabudgetplanta)
 
 module.exports = filesrouter

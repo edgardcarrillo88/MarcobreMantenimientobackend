@@ -1,4 +1,5 @@
 const xlsx = require('xlsx');
+
 const actualmodel = require('../models/cost')
 const budgetmodel = require('../models/budget')
 
@@ -64,7 +65,6 @@ const uploadexcel = (req, res) => {
     })
 }
 
-
 const getalldataactual = async (req, res) => {
 
     console.log("ejecutando get all data");
@@ -83,7 +83,7 @@ const getalldatabudget = async (req, res) => {
 
 const getalldataactualplanta = async (req, res) => {
 
-    console.log("ejecutando get all data");
+    console.log("ejecutando get all data planta");
     const data = await actualPlantamodel.find({})
     res.status(200).json(data)
 
@@ -140,6 +140,7 @@ const deleteallBudgetplanta = async (req, res) => {
             console.error('Error al eliminar documentos:', error);
         });
 }
+
 
 module.exports = {
     uploadexcel,
