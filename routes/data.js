@@ -20,4 +20,8 @@ datarouter.get('/filtereddata',datacontroller.filtereddata)
 
 datarouter.put('/updatedata',datacontroller.updatedata)
 
+datarouter.get('/polines',datacontroller.getpolinesdata)
+datarouter.post('/deletepolines',datacontroller.deleteallpolines)
+
+
 module.exports = datarouter

@@ -1,18 +1,18 @@
 const express = require('express');
-const filesrouter = express.Router()
+const costrouter = express.Router()
 const Upload =  require('../middleware/excelprocess')
-const filecontroller = require('../controllers/costprocess.js');
+const costcontroller = require('../controllers/costprocess.js');
 
-filesrouter.post('/',Upload.single('file'),filecontroller.uploadexcel)
-filesrouter.get('/getalldataactual',filecontroller.getalldataactual)
-filesrouter.get('/getalldatabudget',filecontroller.getalldatabudget)
-filesrouter.post('/deleteactual',filecontroller.deleteallActual)
-filesrouter.post('/deletebudget',filecontroller.deleteallBudget)
+costrouter.post('/',Upload.single('file'),costcontroller.uploadexcel)
+costrouter.get('/getalldataactual',costcontroller.getalldataactual)
+costrouter.get('/getalldatabudget',costcontroller.getalldatabudget)
+costrouter.post('/deleteactual',costcontroller.deleteallActual)
+costrouter.post('/deletebudget',costcontroller.deleteallBudget)
 
-filesrouter.post('/deleteactualplanta',filecontroller.deleteallActualplanta)
-filesrouter.post('/deletebudgetplanta',filecontroller.deleteallBudgetplanta)
+costrouter.post('/deleteactualplanta',costcontroller.deleteallActualplanta)
+costrouter.post('/deletebudgetplanta',costcontroller.deleteallBudgetplanta)
 
-filesrouter.get('/getalldataactualplanta',filecontroller.getalldataactualplanta)
-filesrouter.get('/getalldatabudgetplanta',filecontroller.getalldatabudgetplanta)
+costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
+costrouter.get('/getalldatabudgetplanta',costcontroller.getalldatabudgetplanta)
 
-module.exports = filesrouter
+module.exports = costrouter
