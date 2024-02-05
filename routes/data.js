@@ -4,6 +4,7 @@ const datacontroller = require('../controllers/dataprocess');
 
 const upload = require('../middleware/fileprocess');
 const uploadMiddleware = require('../middleware/dailyprocess');
+const uploadMiddlewarePolines = require('../middleware/polinesprocess');
 
 
 datarouter.post('/registerform',upload.array('files'),datacontroller.registerform)
@@ -22,6 +23,8 @@ datarouter.put('/updatedata',datacontroller.updatedata)
 
 datarouter.get('/polines',datacontroller.getpolinesdata)
 datarouter.post('/deletepolines',datacontroller.deleteallpolines)
+datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
+datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
 
 
 module.exports = datarouter

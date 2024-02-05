@@ -4,6 +4,7 @@ const updatemodel = require('../models/updates')
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
 const polinestagmodel = require('../models/polinestag')
+const polinesreportmodel = require('../models/polinesreport')
 const mongoose = require('mongoose')
 
 const uploadexcel = (req, res) => {
@@ -376,9 +377,6 @@ const getdatahistory = async (req, res) => {
     res.status(200).json({ data })
 }
 
-
-
-
 const getpolinesdata = async(req,res) =>{
     console.log("ejecutando request getpolinesdata");
     const data = await polinestagmodel.find({}).sort({ id: 1 })
@@ -396,6 +394,44 @@ const deleteallpolines = async (req, res) => {
         });
 }
 
+const registerpolines = async (req, res) => {
+
+    console.log("ejecutando registro de inspección de polines");
+
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+
+
+    const files = req.files.files.map(file => {
+        return {
+            data: file.buffer,
+            contentType: file.mimetype
+        };
+    });
+
+
+
+    const initaldata = JSON.parse(req.body.initaldata);
+
+
+    const Estado = JSON.parse(req.body.Estado || '[]');
+
+    const dataPrincipal = new polinesreportmodel({
+        ...initaldata,
+        Estado,
+        photos:files
+    });
+    await dataPrincipal.save();
+    res.status(200).json(dataPrincipal)
+
+}
+
+const getpolinesregisterdata = async(req,res) =>{
+    console.log("ejecutando request getpolinesregister");
+    const data = await polinesreportmodel.find({})
+    res.status(200).json({ data })
+}
+
 module.exports = {
     registerform,
     getalldata,
@@ -411,5 +447,7 @@ module.exports = {
     getdatahistory,
     uploadexcelTemp,
     getpolinesdata,
-    deleteallpolines
+    deleteallpolines,
+    registerpolines,
+    getpolinesregisterdata
 }
