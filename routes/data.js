@@ -26,5 +26,12 @@ datarouter.post('/deletepolines',datacontroller.deleteallpolines)
 datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
 datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
 
+datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)
+
+datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
+datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
+
+
+
 
 module.exports = datarouter

@@ -1,10 +1,18 @@
 const xlsx = require('xlsx');
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
+
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
+
 const polinestagmodel = require('../models/polinestag')
 const polinesreportmodel = require('../models/polinesreport')
+
+const baseindicadoresmodel = require('../models/baseindicadores')
+const iw37nbasemodel = require('../models/iw37nbase')
+const iw37nreportmodel = require('../models/iw37nreport')
+const iw39reportmodel = require('../models/iw39report')
+
 const mongoose = require('mongoose')
 
 const uploadexcel = (req, res) => {
@@ -432,6 +440,171 @@ const getpolinesregisterdata = async(req,res) =>{
     res.status(200).json({ data })
 }
 
+const uploadexcelIndicadoresMantto = (req, res) => {
+
+    console.log("ejecutando carga de datos de indicadores mantto");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+            try {
+
+                    console.log("cargando datos");
+                    const data = new baseindicadoresmodel(rowData);
+                    await data.save();
+
+            } catch (error) {
+                console.error('Error al guardar el dato:', error);
+            }
+        
+    });
+    Promise.all(dataPromises)
+    .then(() => {
+        console.log('Todos los datos guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos' });
+    })
+    .catch((error) => {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    })
+}
+
+const uploadexceliw37nbase = (req, res) => {
+
+    console.log("ejecutando carga de datos iw37nbase");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+            try {
+
+                    console.log("cargando datos");
+                    const data = new iw37nbasemodel(rowData);
+                    await data.save();
+
+            } catch (error) {
+                console.error('Error al guardar el dato:', error);
+            }
+        
+    });
+    Promise.all(dataPromises)
+    .then(() => {
+        console.log('Todos los datos guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos' });
+    })
+    .catch((error) => {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    })
+}
+
+const uploadexceliw37nreport = (req, res) => {
+
+    console.log("ejecutando carga de datos de IW37nReport");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+            try {
+
+                    console.log("cargando datos");
+                    const data = new iw37nreportmodel(rowData);
+                    await data.save();
+
+            } catch (error) {
+                console.error('Error al guardar el dato:', error);
+            }
+        
+    });
+    Promise.all(dataPromises)
+    .then(() => {
+        console.log('Todos los datos guardados de IW37nReport en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos' });
+    })
+    .catch((error) => {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    })
+}
+
+const uploadexceliw39report = (req, res) => {
+
+    console.log("ejecutando carga de datos de iw39report");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+            try {
+
+                    console.log("cargando datos");
+                    const data = new iw39reportmodel(rowData);
+                    await data.save();
+
+            } catch (error) {
+                console.error('Error al guardar el dato:', error);
+            }
+        
+    });
+    Promise.all(dataPromises)
+    .then(() => {
+        console.log('Todos los datos de iw39report guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos' });
+    })
+    .catch((error) => {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    })
+}
+
+const deleteallIndicadores = async (req, res) => {
+    console.log("borrando todos los datos de indicadores");
+    baseindicadoresmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de indicadores eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const getalldataIndicadores = async (req, res) => {
+
+    console.log("ejecutando get all data de Indicadores");
+    const data = await baseindicadoresmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldataIW37nBase = async (req, res) => {
+
+    console.log("ejecutando get all data de IW37nBase");
+    const data = await iw37nbasemodel.find({})
+    res.status(200).json(data)
+
+}
+
+
+
 module.exports = {
     registerform,
     getalldata,
@@ -449,5 +622,12 @@ module.exports = {
     getpolinesdata,
     deleteallpolines,
     registerpolines,
-    getpolinesregisterdata
+    getpolinesregisterdata,
+    uploadexcelIndicadoresMantto,
+    uploadexceliw37nbase,
+    uploadexceliw37nreport,
+    uploadexceliw39report,
+    deleteallIndicadores,
+    getalldataIndicadores,
+    getalldataIW37nBase
 }
