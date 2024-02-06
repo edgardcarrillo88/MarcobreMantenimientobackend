@@ -603,6 +603,21 @@ const getalldataIW37nBase = async (req, res) => {
 
 }
 
+const getalldataIW37nReport = async (req, res) => {
+
+    console.log("ejecutando get all data de IW37nReport");
+    const data = await iw37nreportmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldataIW39Report = async (req, res) => {
+
+    console.log("ejecutando get all data de IW39Report");
+    const data = await iw39reportmodel.find({})
+    res.status(200).json(data)
+
+}
 
 
 module.exports = {
@@ -629,5 +644,7 @@ module.exports = {
     uploadexceliw39report,
     deleteallIndicadores,
     getalldataIndicadores,
-    getalldataIW37nBase
+    getalldataIW37nBase,
+    getalldataIW37nReport,
+    getalldataIW39Report
 }

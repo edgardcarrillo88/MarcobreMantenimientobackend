@@ -30,6 +30,8 @@ datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)
 
 datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
+datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
+datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)
 
 
 
