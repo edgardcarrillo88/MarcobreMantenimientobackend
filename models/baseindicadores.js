@@ -6,6 +6,11 @@ const baseindicadoresschema = mongoose.Schema({
     UT: String,
     Area: String,
     SubArea: String,
+    Ptotrabajo:String,
+    Denominacion:String,
+    AreaResponsable:String,
+    Empresa:String,
+    TipoContrato:String,
     deleted: { type: Boolean, default: false }
 },
     {

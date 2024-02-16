@@ -74,26 +74,26 @@ const uploadexcelTemp = (req, res) => {
 
     const dataPromises = excelData.map(async (rowData) => {
 
-            try {
+        try {
 
-                    console.log("cargando datos");
-                    const data = new polinestagmodel(rowData);
-                    await data.save();
+            console.log("cargando datos");
+            const data = new polinestagmodel(rowData);
+            await data.save();
 
-            } catch (error) {
-                console.error('Error al guardar el dato:', error);
-            }
-        
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const registerform = async (req, res) => {
@@ -385,7 +385,7 @@ const getdatahistory = async (req, res) => {
     res.status(200).json({ data })
 }
 
-const getpolinesdata = async(req,res) =>{
+const getpolinesdata = async (req, res) => {
     console.log("ejecutando request getpolinesdata");
     const data = await polinestagmodel.find({}).sort({ id: 1 })
     res.status(200).json({ data })
@@ -402,6 +402,17 @@ const deleteallpolines = async (req, res) => {
         });
 }
 
+const DeletePolinesReport = async (req, res) => {
+    console.log("borrando todos los reportes de polines");
+    polinesreportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los reportes de polines eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
 const registerpolines = async (req, res) => {
 
     console.log("ejecutando registro de inspección de polines");
@@ -409,32 +420,48 @@ const registerpolines = async (req, res) => {
     console.log('req.body:', req.body);
     console.log('req.files:', req.files);
 
+    let files = [];
+    if (req.files && req.files.files) {
+        const files = req.files.files.map(file => {
+            return {
+                data: file.buffer,
+                contentType: file.mimetype
+            };
+        });
+    }
 
-    const files = req.files.files.map(file => {
-        return {
-            data: file.buffer,
-            contentType: file.mimetype
-        };
-    });
+    const initialData = JSON.parse(req.body.initaldata);
+    console.log(initialData);
 
+    try {
+        for (const data of initialData) {
+            const polinesData = {
+                Tag: data.Tag,
+                Ubicacion: data.Ubicacion,
+                Bastidor: data.Bastidor,
+                Posicion: data.Posicion,
+                Fecha: data.Fecha,
+                Estado: data.Estado,
+                Descripcion: data.Descripcion,
+                Reportante: data.Reportante,
+                photos: files
+            };
 
+            const dataPrincipal = new polinesreportmodel(polinesData);
+            await dataPrincipal.save();
 
-    const initaldata = JSON.parse(req.body.initaldata);
+        }
 
+        res.status(200).json({ success: true, message: "Datos de polines registrados correctamente" });
 
-    const Estado = JSON.parse(req.body.Estado || '[]');
-
-    const dataPrincipal = new polinesreportmodel({
-        ...initaldata,
-        Estado,
-        photos:files
-    });
-    await dataPrincipal.save();
-    res.status(200).json(dataPrincipal)
+    } catch (error) {
+        console.error('Error al registrar datos de polines:', error);
+        res.status(500).json({ success: false, message: "Error al registrar datos de polines" });
+    }
 
 }
 
-const getpolinesregisterdata = async(req,res) =>{
+const getpolinesregisterdata = async (req, res) => {
     console.log("ejecutando request getpolinesregister");
     const data = await polinesreportmodel.find({})
     res.status(200).json({ data })
@@ -452,26 +479,26 @@ const uploadexcelIndicadoresMantto = (req, res) => {
 
     const dataPromises = excelData.map(async (rowData) => {
 
-            try {
+        try {
 
-                    console.log("cargando datos");
-                    const data = new baseindicadoresmodel(rowData);
-                    await data.save();
+            console.log("cargando datos");
+            const data = new baseindicadoresmodel(rowData);
+            await data.save();
 
-            } catch (error) {
-                console.error('Error al guardar el dato:', error);
-            }
-        
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const uploadexceliw37nbase = (req, res) => {
@@ -486,26 +513,26 @@ const uploadexceliw37nbase = (req, res) => {
 
     const dataPromises = excelData.map(async (rowData) => {
 
-            try {
+        try {
 
-                    console.log("cargando datos");
-                    const data = new iw37nbasemodel(rowData);
-                    await data.save();
+            console.log("cargando datos");
+            const data = new iw37nbasemodel(rowData);
+            await data.save();
 
-            } catch (error) {
-                console.error('Error al guardar el dato:', error);
-            }
-        
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const uploadexceliw37nreport = (req, res) => {
@@ -520,26 +547,26 @@ const uploadexceliw37nreport = (req, res) => {
 
     const dataPromises = excelData.map(async (rowData) => {
 
-            try {
+        try {
 
-                    console.log("cargando datos");
-                    const data = new iw37nreportmodel(rowData);
-                    await data.save();
+            console.log("cargando datos");
+            const data = new iw37nreportmodel(rowData);
+            await data.save();
 
-            } catch (error) {
-                console.error('Error al guardar el dato:', error);
-            }
-        
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados de IW37nReport en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos guardados de IW37nReport en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const uploadexceliw39report = (req, res) => {
@@ -554,26 +581,26 @@ const uploadexceliw39report = (req, res) => {
 
     const dataPromises = excelData.map(async (rowData) => {
 
-            try {
+        try {
 
-                    console.log("cargando datos");
-                    const data = new iw39reportmodel(rowData);
-                    await data.save();
+            console.log("cargando datos");
+            const data = new iw39reportmodel(rowData);
+            await data.save();
 
-            } catch (error) {
-                console.error('Error al guardar el dato:', error);
-            }
-        
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos de iw39report guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos de iw39report guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const deleteallIndicadores = async (req, res) => {
@@ -581,6 +608,39 @@ const deleteallIndicadores = async (req, res) => {
     baseindicadoresmodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos de indicadores eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIW37nBase = async (req, res) => {
+    console.log("borrando todos los datos de Iw37n Base");
+    iw37nbasemodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de Iw37n Base eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIw37nreport = async (req, res) => {
+    console.log("borrando todos los datos de IW37n Report");
+    iw37nreportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de IW37n Report eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIW39 = async (req, res) => {
+    console.log("borrando todos los datos de IW39");
+    iw39reportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de IW39 eliminados correctamente');
         })
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
@@ -635,14 +695,22 @@ module.exports = {
     getdatahistory,
     uploadexcelTemp,
     getpolinesdata,
+
     deleteallpolines,
+    DeletePolinesReport,
     registerpolines,
     getpolinesregisterdata,
+
     uploadexcelIndicadoresMantto,
     uploadexceliw37nbase,
     uploadexceliw37nreport,
     uploadexceliw39report,
+
     deleteallIndicadores,
+    deleteallIW37nBase,
+    deleteallIw37nreport,
+    deleteallIW39,
+
     getalldataIndicadores,
     getalldataIW37nBase,
     getalldataIW37nReport,
