@@ -7,8 +7,10 @@ const formcontroller = require('./routes/data')
 const filecontroller = require('./routes/files')
 const costcontroller = require('./routes/cost')
 const path = require('path')
+const {pruebacronologica} = require('./controllers/dataprocess')
 
 dbconnect(app)
+pruebacronologica()
 
 // app.use(cors({credentials: true}))
 

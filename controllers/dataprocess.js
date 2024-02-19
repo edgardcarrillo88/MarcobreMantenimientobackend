@@ -1,4 +1,7 @@
 const xlsx = require('xlsx');
+const schedule = require('node-schedule');
+const mongoose = require('mongoose')
+
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
 
@@ -13,7 +16,7 @@ const iw37nbasemodel = require('../models/iw37nbase')
 const iw37nreportmodel = require('../models/iw37nreport')
 const iw39reportmodel = require('../models/iw39report')
 
-const mongoose = require('mongoose')
+
 
 const uploadexcel = (req, res) => {
 
@@ -445,6 +448,7 @@ const registerpolines = async (req, res) => {
                 Reportante: data.Reportante,
                 Fecha:Date(data.Fecha),
                 TipoReporte:data.TipoReporte,
+                Usuario:data.Usuario,
                 photos: files
             };
 
@@ -680,6 +684,32 @@ const getalldataIW39Report = async (req, res) => {
 
 }
 
+const pruebacronologica = ()=>{
+
+    // // Cada segundo
+    // const rule = new schedule.RecurrenceRule()
+    // rule.second = new schedule.Range(0,59)
+
+    // const job = schedule.scheduleJob(rule, function(){
+    //     console.log("Función programada");
+    // })
+
+    const rule = new schedule.RecurrenceRule();
+    rule.tz = 'America/Bogota'; // Establece la zona horaria UTC-5 (Bogotá)
+    rule.hour = 16; // Hora (en UTC-5)
+    rule.minute = 46; // Minuto
+    rule.second = 0; // Segundo
+
+    const job = schedule.scheduleJob(rule, function() {
+        console.log("Función programada para ejecutarse todos los días a las 12:00 UTC-5");
+    });
+
+
+}
+
+const prueba = async(req,res)=>{
+
+}
 
 module.exports = {
     registerform,
@@ -695,8 +725,8 @@ module.exports = {
     updatedata,
     getdatahistory,
     uploadexcelTemp,
-    getpolinesdata,
 
+    getpolinesdata,
     deleteallpolines,
     DeletePolinesReport,
     registerpolines,
@@ -715,5 +745,7 @@ module.exports = {
     getalldataIndicadores,
     getalldataIW37nBase,
     getalldataIW37nReport,
-    getalldataIW39Report
+    getalldataIW39Report,
+
+    pruebacronologica,
 }

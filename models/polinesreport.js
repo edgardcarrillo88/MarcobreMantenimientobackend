@@ -14,6 +14,8 @@ const polinesreportschema = mongoose.Schema({
     Descripcion: String,      
     Reportante: String,
     Fecha:Date,
+    TipoReporte:String,
+    Usuario:String,
     photos: [{data: Buffer,contentType: String}],
     deleted: {type: Boolean, default:false}
 },
