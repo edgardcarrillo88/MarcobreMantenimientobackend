@@ -440,10 +440,11 @@ const registerpolines = async (req, res) => {
                 Ubicacion: data.Ubicacion,
                 Bastidor: data.Bastidor,
                 Posicion: data.Posicion,
-                Fecha: data.Fecha,
                 Estado: data.Estado,
                 Descripcion: data.Descripcion,
                 Reportante: data.Reportante,
+                Fecha:Date(data.Fecha),
+                TipoReporte:data.TipoReporte,
                 photos: files
             };
 
