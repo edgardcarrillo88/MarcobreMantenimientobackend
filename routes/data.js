@@ -25,10 +25,8 @@ datarouter.get('/polines',datacontroller.getpolinesdata)
 datarouter.post('/deletepolines',datacontroller.deleteallpolines)
 datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
 datarouter.post('/deletereportpolines',datacontroller.DeletePolinesReport)
-
-
-
 datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
+datarouter.post('/prueba',datacontroller.prueba)
 
 datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)
 datarouter.post('/deleteIW37nBase',datacontroller.deleteallIW37nBase)
