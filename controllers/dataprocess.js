@@ -696,99 +696,249 @@ const pruebacronologica = () => {
 
     const rule = new schedule.RecurrenceRule();
     rule.tz = 'America/Bogota'; // Establece la zona horaria UTC-5 (Bogotá)
-    rule.hour = 16; // Hora (en UTC-5)
-    rule.minute = 46; // Minuto
+    rule.hour = 22; // Hora (en UTC-5)
+    rule.minute = 0; // Minuto
     rule.second = 0; // Segundo
 
-    const job = schedule.scheduleJob(rule, function () {
+    const job = schedule.scheduleJob(rule, async function () {
         console.log("Función programada para ejecutarse todos los días a las 12:00 UTC-5");
+
+        try {
+
+            const objetosCreados = [];
+    
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+    
+            const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    
+            const YesterdaystartOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+            const YesterdayendOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() + 1);
+    
+            const BasePolines = await polinestagmodel.find();
+    
+            // Consultas de coincidencias del día actual y anterior en paralelo
+            const [coincidenciasDelDia, coincidenciasAyer] = await Promise.all([
+                polinesreportmodel.find({
+                    Fecha: { $gte: startOfDay, $lt: endOfDay },
+                    $or: BasePolines.map(({ Tag, Ubicacion, Bastidor, Posicion }) => ({ Tag, Ubicacion, Bastidor, Posicion }))
+                }),
+                polinesreportmodel.find({
+                    Fecha: { $gte: YesterdaystartOfDay, $lt: YesterdayendOfDay },
+                    $or: BasePolines.map(({ Tag, Ubicacion, Bastidor, Posicion }) => ({ Tag, Ubicacion, Bastidor, Posicion }))
+                })
+            ]);
+    
+            // Procesamiento de las coincidencias
+            await Promise.all(BasePolines.map(async docN1 => {
+                const { Tag, Ubicacion, Bastidor, Posicion } = docN1;
+    
+                // Procesamiento de coincidencias del día actual
+                const CoincidenciaDelDia = coincidenciasDelDia.filter(coincidencia =>
+                    coincidencia.Tag === Tag && coincidencia.Ubicacion === Ubicacion &&
+                    coincidencia.Bastidor === Bastidor && coincidencia.Posicion === Posicion
+                );
+    
+                // Procesamiento de coincidencias del día anterior
+                const coincidenciaAnterior = coincidenciasAyer.filter(coincidencia =>
+                    coincidencia.Tag === Tag && coincidencia.Ubicacion === Ubicacion &&
+                    coincidencia.Bastidor === Bastidor && coincidencia.Posicion === Posicion
+                );
+    
+                // Manejo de coincidencias del día anterior
+                if (CoincidenciaDelDia.length === 0 && coincidenciaAnterior.length !== 0) {
+    
+                    const nuevosObjetos = coincidenciaAnterior.map(Objeto => {
+                        // Verificar si el objeto ya ha sido creado anteriormente
+                        const objetoRepetido = objetosCreados.find(obj =>
+                            obj.Tag === Objeto.Tag && obj.Ubicacion === Objeto.Ubicacion &&
+                            obj.Bastidor === Objeto.Bastidor && obj.Posicion === Objeto.Posicion && obj.Estado === Objeto.Estado
+                        );
+                
+                        if (!objetoRepetido) {
+                            const nuevoObjeto = {
+                                Tag: Objeto.Tag,
+                                Ubicacion: Objeto.Ubicacion,
+                                Bastidor: Objeto.Bastidor,
+                                Posicion: Objeto.Posicion,
+                                Fecha: today,
+                                Estado: Objeto.Estado,
+                                TipoReporte: "Automático",
+                                Usuario: "Automático",
+                            };
+                            
+                            objetosCreados.push(nuevoObjeto); // Agregar nuevo objeto al array objetosCreados
+                
+                            return nuevoObjeto;
+                        }
+                    }).filter(objeto => objeto); // Filtrar los objetos que no son nulos
+                
+                    if (nuevosObjetos.length > 0) {
+                        // Guardar los nuevos objetos en la base de datos
+                        await polinesreportmodel.insertMany(nuevosObjetos);
+                        console.log('Se crearon nuevos objetos en la Base de Datos de reporte de polines:', nuevosObjetos);
+                    } else {
+                        console.log('Todos los objetos ya han sido creados anteriormente.');
+                    }
+    
+                } else {
+                    console.log('No se encontraron coincidencias en la Base de Datos de reporte de polines para el día anterior.');
+                }
+            }));
+    
+            res.status(200).send('Proceso completado correctamente.');
+        } catch (error) {
+            console.error('Error en el proceso:', error);
+            res.status(500).send('Error en el servidor.');
+        }
+        
     });
 
 
 }
 
 const prueba = async (req, res) => {
+    try {
 
-    const today = new Date();
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth();
-    const todayDay = today.getDate();
+        const objetosCreados = [];
 
-    const startOfDay = new Date(todayYear, todayMonth, todayDay);
-    const endOfDay = new Date(todayYear, todayMonth, todayDay + 1)
-    console.log(startOfDay);
-    console.log(endOfDay);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
 
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayYear = yesterday.getFullYear();
-    const yesterdayMonth = yesterday.getMonth();
-    const yesterdayDay = yesterday.getDate();
-    const YesterdaystartOfDay = new Date(yesterdayYear, yesterdayMonth, yesterdayDay);
-    const YesterdayendOfDay = new Date(yesterdayYear, yesterdayMonth, yesterdayDay + 1);
-    console.log(YesterdaystartOfDay);
-    console.log(YesterdayendOfDay);
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-    polinestagmodel.find().then(docsN1 => {
-        docsN1.forEach(docN1 => {
+        const YesterdaystartOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+        const YesterdayendOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() + 1);
 
-            const { Tag, Ubicacion, Bastidor, Posicion } = docN1;
+        const BasePolines = await polinestagmodel.find();
 
+        // Consultas de coincidencias del día actual y anterior en paralelo
+        const [coincidenciasDelDia, coincidenciasAyer] = await Promise.all([
             polinesreportmodel.find({
                 Fecha: { $gte: startOfDay, $lt: endOfDay },
-                Tag,
-                Ubicacion,
-                Bastidor,
-                Posicion
-            }).then(docsN2 => {
+                $or: BasePolines.map(({ Tag, Ubicacion, Bastidor, Posicion }) => ({ Tag, Ubicacion, Bastidor, Posicion }))
+            }),
+            polinesreportmodel.find({
+                Fecha: { $gte: YesterdaystartOfDay, $lt: YesterdayendOfDay },
+                $or: BasePolines.map(({ Tag, Ubicacion, Bastidor, Posicion }) => ({ Tag, Ubicacion, Bastidor, Posicion }))
+            })
+        ]);
 
-                if (docsN2.length === 0) {
-                    // Si no se encuentra coincidencia, buscar en la Base de Datos N°02 para el día anterior
-                    polinesreportmodel.findOne({
-                        Fecha: { $gte: YesterdaystartOfDay, $lt: YesterdayendOfDay },
-                        Tag,
-                        Ubicacion,
-                        Bastidor,
-                        Posicion
-                    }).then(coincidenciaAnterior => {
-                        if (coincidenciaAnterior) {
+        // Procesamiento de las coincidencias
+        await Promise.all(BasePolines.map(async docN1 => {
+            const { Tag, Ubicacion, Bastidor, Posicion } = docN1;
 
-                            console.log("---------");
-                            console.log(coincidenciaAnterior);
-                            console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines')
-                            console.log("---------");
+            // Procesamiento de coincidencias del día actual
+            const CoincidenciaDelDia = coincidenciasDelDia.filter(coincidencia =>
+                coincidencia.Tag === Tag && coincidencia.Ubicacion === Ubicacion &&
+                coincidencia.Bastidor === Bastidor && coincidencia.Posicion === Posicion
+            );
 
-                            //// Si se encuentra una coincidencia en el día anterior, crear un nuevo objeto en la Base de Datos N°02
-                            // const nuevoObjeto = new polinesreportmodel({
-                            //     fecha: today.toDate(),
-                            //     Tag: coincidenciaAnterior.Tag,
-                            //     Ubicacion: coincidenciaAnterior.Ubicacion,
-                            //     Bastidor: coincidenciaAnterior.Bastidor,
-                            //     Posicion: coincidenciaAnterior.Posicion
-                            // });
-                            // nuevoObjeto.save().then(nuevoObjetoCreado => {
-                            //     console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines:', nuevoObjetoCreado);
-                            // }).catch(error => {
-                            //     console.error('Error al crear un nuevo objeto en la Base de Datos de reporte de polines:', error);
-                            // });
-                        } else {
-                            console.log('No se encontraron coincidencias en la Base de Datos de reporte de polines para el día anterior.');
-                        }
-                    }).catch(error => {
-                        console.error('Error al buscar coincidencias en la Base de Datos de reporte de polines para el día anterior:', error);
-                    });
+            // Procesamiento de coincidencias del día anterior
+            const coincidenciaAnterior = coincidenciasAyer.filter(coincidencia =>
+                coincidencia.Tag === Tag && coincidencia.Ubicacion === Ubicacion &&
+                coincidencia.Bastidor === Bastidor && coincidencia.Posicion === Posicion
+            );
+
+            // Manejo de coincidencias del día anterior
+            if (CoincidenciaDelDia.length === 0 && coincidenciaAnterior.length !== 0) {
+                // const Objeto = coincidenciaAnterior[0];
+
+                // // Verificar si el objeto ya ha sido creado anteriormente
+                // const objetoRepetido = objetosCreados.find(obj =>
+                //     obj.Tag === Objeto.Tag && obj.Ubicacion === Objeto.Ubicacion &&
+                //     obj.Bastidor === Objeto.Bastidor && obj.Posicion === Objeto.Posicion
+                // );
+
+                // if (!objetoRepetido) {
+
+                //     const nuevoObjeto = new polinesreportmodel({
+                //         Tag: Objeto.Tag,
+                //         Ubicacion: Objeto.Ubicacion,
+                //         Bastidor: Objeto.Bastidor,
+                //         Posicion: Objeto.Posicion,
+                //         Fecha: today,
+                //         Estado: Objeto.Posicion,
+                //         TipoReporte: "Automático",
+                //         Usuario: "Automático",
+                //     });
+
+                //     objetosCreados.push(Objeto);
+
+                //     await nuevoObjeto.save();
+                //     console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines:', nuevoObjeto);
+                // } else {
+                //     console.log('El objeto ya ha sido creado anteriormente:', objetoRepetido);
+                // }
+
+                const nuevosObjetos = coincidenciaAnterior.map(Objeto => {
+                    // Verificar si el objeto ya ha sido creado anteriormente
+                    const objetoRepetido = objetosCreados.find(obj =>
+                        obj.Tag === Objeto.Tag && obj.Ubicacion === Objeto.Ubicacion &&
+                        obj.Bastidor === Objeto.Bastidor && obj.Posicion === Objeto.Posicion && obj.Estado === Objeto.Estado
+                    );
+            
+                    if (!objetoRepetido) {
+                        const nuevoObjeto = {
+                            Tag: Objeto.Tag,
+                            Ubicacion: Objeto.Ubicacion,
+                            Bastidor: Objeto.Bastidor,
+                            Posicion: Objeto.Posicion,
+                            Fecha: today,
+                            Estado: Objeto.Estado,
+                            TipoReporte: "Automático",
+                            Usuario: "Automático",
+                        };
+                        
+                        objetosCreados.push(nuevoObjeto); // Agregar nuevo objeto al array objetosCreados
+            
+                        return nuevoObjeto;
+                    }
+                }).filter(objeto => objeto); // Filtrar los objetos que no son nulos
+            
+                if (nuevosObjetos.length > 0) {
+                    // Guardar los nuevos objetos en la base de datos
+                    await polinesreportmodel.insertMany(nuevosObjetos);
+                    console.log('Se crearon nuevos objetos en la Base de Datos de reporte de polines:', nuevosObjetos);
                 } else {
-                    console.log('Se encontraron coincidencias en la Base de Datos de reporte de polines para el día actualm no se va a crear nuevos items.');
+                    console.log('Todos los objetos ya han sido creados anteriormente.');
                 }
-            }).catch(error => {
-                // Manejar errores aquí
-                console.error('Error al buscar coincidencias en la Base de Datos de reporte de polines:', error);
-            });
-        });
-    }).catch(error => {
-        // Manejar errores aquí
-        console.error('Error al buscar documentos en la Base de Datos de TAG de polines:', error);
-    });
+
+                // return nuevoObjeto.save().then(nuevoObjetoCreado => {
+                //     console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines:', nuevoObjetoCreado);
+                // }).catch(error => {
+                //     console.error('Error al crear un nuevo objeto en la Base de Datos de reporte de polines:', error);
+                // });
+            } else {
+                console.log('No se encontraron coincidencias en la Base de Datos de reporte de polines para el día anterior.');
+                // return Promise.resolve(); // Resuelve la promesa si no hay coincidencias
+            }
+        }));
+
+        res.status(200).send('Proceso completado correctamente.');
+    } catch (error) {
+        console.error('Error en el proceso:', error);
+        res.status(500).send('Error en el servidor.');
+    }
+}
+
+
+
+const borrandoDatosAutomaticos = async (req, res) => {
+
+    console.log("Borrando todos los polines con TipoReporte igual a 'Automático'");
+    try {
+        await polinesreportmodel.deleteMany({ TipoReporte: 'Automático' });
+        console.log('Todos los polines con TipoReporte igual a "Automático" han sido eliminados correctamente');
+        res.status(200).send('Todos los polines con TipoReporte igual a "Automático" han sido eliminados correctamente');
+    } catch (error) {
+        console.error('Error al eliminar documentos:', error);
+        res.status(500).send('Error al eliminar documentos');
+    }
 
 }
 
@@ -830,4 +980,5 @@ module.exports = {
 
     pruebacronologica,
     prueba,
+    borrandoDatosAutomaticos
 }
