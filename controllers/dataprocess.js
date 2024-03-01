@@ -696,8 +696,8 @@ const pruebacronologica = (req, res) => {
 
     const rule = new schedule.RecurrenceRule();
     rule.tz = 'America/Bogota'; // Establece la zona horaria UTC-5 (Bogotá)
-    rule.hour = 11; // Hora (en UTC-5)
-    rule.minute = 2; // Minuto
+    rule.hour = 22; // Hora (en UTC-5)
+    rule.minute = 0; // Minuto
     rule.second = 0; // Segundo
 
     const job = schedule.scheduleJob(rule, async function () {
