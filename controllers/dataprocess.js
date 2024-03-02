@@ -668,6 +668,18 @@ const getalldataIW37nBase = async (req, res) => {
 
 }
 
+const DeleteDataIW37nBase = async(req,res)=>{
+    console.log("Borrando los datos del IW37N Base");
+    try {
+        await iw37nbasemodel.deleteMany({ "Revisión": 'SEM09-24' });
+        console.log('Todos los datos de la semana borrados');
+        res.status(200).send('Todos los datos de la semana borrados');
+    } catch (error) {
+        console.error('Error al eliminar documentos:', error);
+        res.status(500).send('Error al eliminar documentos');
+    }
+}
+
 const getalldataIW37nReport = async (req, res) => {
 
     console.log("ejecutando get all data de IW37nReport");
@@ -696,12 +708,12 @@ const pruebacronologica = (req, res) => {
 
     const rule = new schedule.RecurrenceRule();
     rule.tz = 'America/Bogota'; // Establece la zona horaria UTC-5 (Bogotá)
-    rule.hour = 22; // Hora (en UTC-5)
-    rule.minute = 0; // Minuto
+    rule.hour = 0; // Hora (en UTC-5)
+    rule.minute = 1; // Minuto
     rule.second = 0; // Segundo
 
     const job = schedule.scheduleJob(rule, async function () {
-        console.log("Función programada para ejecutarse todos los días a las 22:00 UTC-5");
+        console.log("Función programada para ejecutarse todos los días a las 00:01 UTC-5");
         prueba(req, res)
     });
 
@@ -714,7 +726,7 @@ const prueba = async (req, res) => {
         const objetosCreados = [];
 
         const today = new Date();
-        //today.setDate(today.getDate() - 1);
+        today.setDate(today.getDate() - 1);
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
         console.log(today);
@@ -884,6 +896,7 @@ module.exports = {
     deleteallIW37nBase,
     deleteallIw37nreport,
     deleteallIW39,
+    DeleteDataIW37nBase,
 
     getalldataIndicadores,
     getalldataIW37nBase,
