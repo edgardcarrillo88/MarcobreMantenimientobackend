@@ -1,22 +1,25 @@
 const express = require('express');
 const datarouter = express.Router()
 const datacontroller = require('../controllers/dataprocess');
-
 const upload = require('../middleware/fileprocess');
 const uploadMiddleware = require('../middleware/dailyprocess');
 const uploadMiddlewarePolines = require('../middleware/polinesprocess');
 
-
+//Reporte rápido de Falla
 datarouter.post('/registerform',upload.array('files'),datacontroller.registerform)
 datarouter.get('/getalldata',datacontroller.getalldata)
+datarouter.get('/getsingledata',datacontroller.getsingledata)
 
+//Reporte diario de contratistas
 datarouter.post('/dailyreport',uploadMiddleware,datacontroller.dailyreport)
 datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
 //Parada de Planta
-datarouter.get('/getsingledata',datacontroller.getsingledata)
-datarouter.get('/filters',datacontroller.getfiltersdata)
+
 datarouter.get('/schedule',datacontroller.getscheduledata)
+datarouter.get('/taskhistorydata',datacontroller.getdatahistory)
+
+datarouter.get('/filters',datacontroller.getfiltersdata)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
 datarouter.get('/filtereddata',datacontroller.filtereddata)
 datarouter.put('/updatedata',datacontroller.updatedata)
@@ -24,12 +27,6 @@ datarouter.put('/updatedata',datacontroller.updatedata)
 datarouter.post('/registroinduccion',datacontroller.RegistroInduccion)
 datarouter.get('/getinducciondata',datacontroller.ObtenerRegistroInduccion)
 datarouter.get('/getcontratistas',datacontroller.ObtenerRegistroContratistas)
-
-
-
-
-
-
 
 //Registro de Polines
 datarouter.get('/polines',datacontroller.getpolinesdata)
