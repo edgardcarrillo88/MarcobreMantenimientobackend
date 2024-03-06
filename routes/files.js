@@ -10,6 +10,9 @@ filesrouter.post('/loadindicadores',Upload.single('file'),filecontroller.uploade
 filesrouter.post('/loadiw37nbase',Upload.single('file'),filecontroller.uploadexceliw37nbase)
 filesrouter.post('/loadiw37nreport',Upload.single('file'),filecontroller.uploadexceliw37nreport)
 filesrouter.post('/loadiw39report',Upload.single('file'),filecontroller.uploadexceliw39report)
+filesrouter.post('/loadpersonalcontratista',Upload.single('file'),filecontroller.uploadexcelPersonalContratistas)
+
+
 // filesrouter.post('/valorizaciones',Upload.single('file'),filecontroller.valorizaciones)
 // filesrouter.get('/dataedp',filecontroller.dataedp)
 // filesrouter.post('/deleteallEdp',filecontroller.deleteallEdp)

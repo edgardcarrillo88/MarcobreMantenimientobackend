@@ -6,6 +6,7 @@ const axios = require('axios')
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
 const Induccionmodel = require('../models/induccionPdP')
+const PersonalContratistamodel = require('../models/personalcontratistas')
 
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
@@ -908,6 +909,48 @@ const ObtenerRegistroInduccion = async (req,res) =>{
 
 }
 
+const uploadexcelPersonalContratistas = (req, res) => {
+
+    console.log("ejecutando carga de datos de personal de contratistas");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new PersonalContratistamodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados de Personal contratista en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+const ObtenerRegistroContratistas = async (req,res) =>{
+
+    console.log("Obteniendo registros de inducción");
+    const data = await PersonalContratistamodel.find({})
+    res.status(200).json(data)
+
+}
+
 module.exports = {
     registerform,
     getalldata,
@@ -924,6 +967,8 @@ module.exports = {
     uploadexcelTemp,
     RegistroInduccion,
     ObtenerRegistroInduccion,
+    ObtenerRegistroContratistas,
+    uploadexcelPersonalContratistas,
 
     getpolinesdata,
     deleteallpolines,

@@ -23,6 +23,11 @@ datarouter.put('/updatedata',datacontroller.updatedata)
 
 datarouter.post('/registroinduccion',datacontroller.RegistroInduccion)
 datarouter.get('/getinducciondata',datacontroller.ObtenerRegistroInduccion)
+datarouter.get('/getcontratistas',datacontroller.ObtenerRegistroContratistas)
+
+
+
+
 
 
 
