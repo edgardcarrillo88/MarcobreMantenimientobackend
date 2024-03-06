@@ -1,6 +1,7 @@
 const xlsx = require('xlsx');
 const schedule = require('node-schedule');
 const mongoose = require('mongoose')
+const axios = require('axios')
 
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
@@ -635,6 +636,7 @@ const deleteallIw37nreport = async (req, res) => {
     iw37nreportmodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos de IW37n Report eliminados correctamente');
+            res.status(200).send("Todos los datos de IW37n Report eliminados correctamente")
         })
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
@@ -646,6 +648,7 @@ const deleteallIW39 = async (req, res) => {
     iw39reportmodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos de IW39 eliminados correctamente');
+            res.status(200).send('Todos los datos de IW39 eliminados correctamente')
         })
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
@@ -668,7 +671,7 @@ const getalldataIW37nBase = async (req, res) => {
 
 }
 
-const DeleteDataIW37nBase = async(req,res)=>{
+const DeleteDataIW37nBase = async (req, res) => {
     console.log("Borrando los datos del IW37N Base");
     try {
         await iw37nbasemodel.deleteMany({ "Revisión": 'SEM09-24' });
@@ -851,7 +854,6 @@ const prueba = async (req, res) => {
     }
 }
 
-
 const borrandoDatosAutomaticos = async (req, res) => {
 
     console.log("Borrando todos los polines con TipoReporte igual a 'Automático'");
@@ -862,6 +864,28 @@ const borrandoDatosAutomaticos = async (req, res) => {
     } catch (error) {
         console.error('Error al eliminar documentos:', error);
         res.status(500).send('Error al eliminar documentos');
+    }
+
+}
+
+const RegistroInduccion = async (req, res) => {
+
+    console.log(req.body);
+    const { FechaInicio, fechaFin, DNI } = req.body
+    const apiUrl = `${process.env.API_URL}${DNI}`
+
+    try {
+        const response = await axios.get(apiUrl, {
+            headers: {
+                Authorization: `Bearer ${process.env.TOKEN_DNI}`
+            }
+        })
+        console.log(response.data);
+        res.status(200).send({Message: "Registro realizado con éxito", Informacion: response.data})
+        console.log("Registro realizado con éxito");
+    } catch (error) {
+        console.log("Error al realizar registro");
+        res.status(404).send({Message: "Error al realizar registro"})
     }
 
 }
@@ -880,6 +904,7 @@ module.exports = {
     updatedata,
     getdatahistory,
     uploadexcelTemp,
+    RegistroInduccion,
 
     getpolinesdata,
     deleteallpolines,
