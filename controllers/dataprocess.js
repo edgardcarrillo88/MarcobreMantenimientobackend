@@ -5,6 +5,7 @@ const axios = require('axios')
 
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
+const Induccionmodel = require('../models/induccionPdP')
 
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
@@ -871,7 +872,7 @@ const borrandoDatosAutomaticos = async (req, res) => {
 const RegistroInduccion = async (req, res) => {
 
     console.log(req.body);
-    const { FechaInicio, fechaFin, DNI } = req.body
+    const { FechaInicio, FechaFin, DNI } = req.body
     const apiUrl = `${process.env.API_URL}${DNI}`
 
     try {
@@ -882,11 +883,28 @@ const RegistroInduccion = async (req, res) => {
         })
         console.log(response.data);
         res.status(200).send({Message: "Registro realizado con éxito", Informacion: response.data})
+        const Registro = new Induccionmodel({
+            FechaInicio,
+            FechaFin,
+            dni: DNI,
+            nombres:response.data.nombres,
+            apellidoPaterno:response.data.apellidoPaterno,
+            apellidoMaterno:response.data.apellidoMaterno,
+        });
+        await Registro.save();
         console.log("Registro realizado con éxito");
     } catch (error) {
         console.log("Error al realizar registro");
         res.status(404).send({Message: "Error al realizar registro"})
     }
+
+}
+
+const ObtenerRegistroInduccion = async (req,res) =>{
+
+    console.log("Obteniendo registros de inducción");
+    const data = await Induccionmodel.find({})
+    res.status(200).json(data)
 
 }
 
@@ -905,6 +923,7 @@ module.exports = {
     getdatahistory,
     uploadexcelTemp,
     RegistroInduccion,
+    ObtenerRegistroInduccion,
 
     getpolinesdata,
     deleteallpolines,

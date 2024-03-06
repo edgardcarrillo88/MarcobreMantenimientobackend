@@ -22,6 +22,8 @@ datarouter.get('/filtereddata',datacontroller.filtereddata)
 datarouter.put('/updatedata',datacontroller.updatedata)
 
 datarouter.post('/registroinduccion',datacontroller.RegistroInduccion)
+datarouter.get('/getinducciondata',datacontroller.ObtenerRegistroInduccion)
+
 
 
 //Registro de Polines
