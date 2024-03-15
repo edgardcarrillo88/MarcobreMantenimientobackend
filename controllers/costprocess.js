@@ -1,14 +1,16 @@
 const xlsx = require('xlsx');
 
+//Mantto Mina
 const actualmodel = require('../models/cost')
 const budgetmodel = require('../models/budget')
 
+//Mantto Planta
 const actualPlantamodel = require('../models/costplanta')
 const budgetPlantamodel = require('../models/budgetplanta')
 
 const mongoose = require('mongoose')
 
-
+//Manto Mina
 const uploadexcel = (req, res) => {
 
     console.log("ejecutando carga de costos");
@@ -55,14 +57,14 @@ const uploadexcel = (req, res) => {
         }
     });
     Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const getalldataactual = async (req, res) => {
@@ -81,22 +83,6 @@ const getalldatabudget = async (req, res) => {
 
 }
 
-const getalldataactualplanta = async (req, res) => {
-
-    console.log("ejecutando get all data planta");
-    const data = await actualPlantamodel.find({})
-    res.status(200).json(data)
-
-}
-
-const getalldatabudgetplanta = async (req, res) => {
-
-    console.log("ejecutando get all data");
-    const data = await budgetPlantamodel.find({})
-    res.status(200).json(data)
-
-}
-
 const deleteallActual = async (req, res) => {
     console.log("borrando todo");
     actualmodel.deleteMany({})
@@ -109,7 +95,7 @@ const deleteallActual = async (req, res) => {
 }
 
 const deleteallBudget = async (req, res) => {
-    console.log("borrando todo");
+    console.log("borrando todos los datos del ppto de mantto mina");
     budgetmodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos del budget eliminados correctamente');
@@ -117,6 +103,25 @@ const deleteallBudget = async (req, res) => {
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
         });
+}
+
+
+//Mantto Planta
+const getalldataactualplanta = async (req, res) => {
+
+    console.log("ejecutando get all data planta");
+    // const data = await actualPlantamodel.find({})
+    const data = await actualPlantamodel.find({Mes:{$ne:0}})
+    res.status(200).json(data)
+
+}
+
+const getalldatabudgetplanta = async (req, res) => {
+
+    console.log("ejecutando get all data");
+    const data = await budgetPlantamodel.find({})
+    res.status(200).json(data)
+
 }
 
 const deleteallActualplanta = async (req, res) => {
@@ -131,7 +136,7 @@ const deleteallActualplanta = async (req, res) => {
 }
 
 const deleteallBudgetplanta = async (req, res) => {
-    console.log("borrando todo");
+    console.log("borrando todos los datos del ppto de Mantto Planta");
     budgetPlantamodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos del budget eliminados correctamente');
@@ -139,6 +144,18 @@ const deleteallBudgetplanta = async (req, res) => {
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
         });
+}
+
+const UpdateSingleMonth = async (req, res) => {
+    console.log(req.body);
+    console.log("Ejecutando actualización por fila");
+    res.status(200).send("Actualización exitosa")
+}
+
+const UpdateGroupMonth = async (req, res) => {
+    console.log(req.body);
+    console.log("Ejecutando actualización por grupo");
+    res.status(200).send("Actualización exitosa")
 }
 
 
@@ -151,5 +168,8 @@ module.exports = {
     deleteallActual,
     deleteallBudget,
     deleteallActualplanta,
-    deleteallBudgetplanta
+    deleteallBudgetplanta,
+
+    UpdateSingleMonth,
+    UpdateGroupMonth
 }

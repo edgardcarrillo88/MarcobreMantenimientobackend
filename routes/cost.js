@@ -15,4 +15,7 @@ costrouter.post('/deletebudgetplanta',costcontroller.deleteallBudgetplanta)
 costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
 costrouter.get('/getalldatabudgetplanta',costcontroller.getalldatabudgetplanta)
 
+costrouter.post('/updatesinglemonth',costcontroller.UpdateSingleMonth)
+costrouter.post('/updategroupmonth',costcontroller.UpdateGroupMonth)
+
 module.exports = costrouter

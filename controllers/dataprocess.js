@@ -1,26 +1,32 @@
+//Librerias
 const xlsx = require('xlsx');
 const schedule = require('node-schedule');
 const mongoose = require('mongoose')
 const axios = require('axios')
 
+//Modelos Parada de Planta
 const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
 const Induccionmodel = require('../models/induccionPdP')
 const PersonalContratistamodel = require('../models/personalcontratistas')
 
+//Modelos Reporte de Falla
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
 
+//Modelos Reporte de Polines
 const polinestagmodel = require('../models/polinestag')
 const polinesreportmodel = require('../models/polinesreport')
 
+//Modelos Indicadores de Mantenimiento
 const baseindicadoresmodel = require('../models/baseindicadores')
 const iw37nbasemodel = require('../models/iw37nbase')
 const iw37nreportmodel = require('../models/iw37nreport')
 const iw39reportmodel = require('../models/iw39report')
+const RosterModel = require('../models/roster')
 
 
-
+//Parada de Planta
 const uploadexcel = (req, res) => {
 
     const filepath = req.file.path
@@ -68,40 +74,147 @@ const uploadexcel = (req, res) => {
         })
 }
 
-const uploadexcelTemp = (req, res) => {
+const getfiltersdata = async (req, res) => {
+    console.log("ejecutando datos para filtros");
 
-    console.log("ejecutando carga de datos");
-    const bufferData = req.file.buffer;
-    const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
+    const uniqueResponsables = await taskmodel.distinct('responsable');
+    const uniqueContratistas = await taskmodel.distinct('contratista');
+    const uniqueEstados = await taskmodel.distinct('estado');
 
+    const data = [];
 
+    for (let i = 0; i < uniqueResponsables.length; i++) {
+        const uniqueValueObject = {
+            responsable: uniqueResponsables[i],
+            contratista: uniqueContratistas[i],
+            estado: uniqueEstados[i],
+        };
+        data.push(uniqueValueObject);
+    }
 
-    const dataPromises = excelData.map(async (rowData) => {
-
-        try {
-
-            console.log("cargando datos");
-            const data = new polinestagmodel(rowData);
-            await data.save();
-
-        } catch (error) {
-            console.error('Error al guardar el dato:', error);
-        }
-
-    });
-    Promise.all(dataPromises)
-        .then(() => {
-            console.log('Todos los datos guardados en la base de datos');
-            res.status(200).json({ message: 'Datos guardados en la base de datos' });
-        })
-        .catch((error) => {
-            console.error('Error al guardar los datos:', error);
-            res.status(500).json({ error: 'Error al guardar los datos' });
-        })
+    res.status(200).json({ data })
 }
 
+const getscheduledata = async (req, res) => {
+    console.log("ejecutando request getalldata");
+    const data = await taskmodel.find({}).sort({ id: 1 })
+    res.status(200).json({ data })
+}
+
+const statusupdate = async (req, res) => {
+    console.log("actualizando status");
+    const { fechaActual } = req.body;
+    const data = await taskmodel.find({}).sort({ id: 1 })
+
+    data.map(async (task) => {
+        const fechainiciobd = new Date(task.inicioplan)
+        const fechafinbd = new Date(task.finplan)
+        const fechafrontend = new Date(fechaActual)
+
+
+        if (task.avance === undefined) {
+            // console.log("No iniciado");
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    estado: "No iniciado"
+                }
+            })
+        }
+
+        if (fechafrontend > fechainiciobd && task.avance === undefined) {
+            // console.log("tarea atrasada");
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    estado: "Atrasado"
+                }
+            })
+        }
+
+        if (fechafrontend > fechafinbd && task.avance !== 100) {
+            // console.log("tarea atrasada");
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    estado: "Atrasado"
+                }
+            })
+        }
+
+
+
+        if (task.avance === 100) {
+            // console.log("Finalizado");
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    estado: "Finalizado"
+                }
+            })
+        }
+    })
+}
+
+const filtereddata = async (req, res) => {
+    console.log("ejecutando request filtereddata");
+    const { id } = req.query
+    const data = await taskmodel.find({ id })
+    res.status(200).json(data[0])
+}
+
+const updatedata = async (req, res) => {
+    const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente } = req.body;
+
+    const formatearFecha = (fecha) => {
+        if (!fecha) return null;
+        const [fechaParte, horaParte] = fecha.split('T');
+        const [anio, mes, dia] = fechaParte.split('-');
+        const [hora, minutos] = horaParte.split(':');
+        return `${dia}/${mes}/${anio}, ${hora}:${minutos}`;
+    };
+
+    const newinicio = formatearFecha(inicio);
+    const newfin = formatearFecha(fin);
+
+    const data = await taskmodel.findByIdAndUpdate(id, {
+        $set: {
+            comentarios: comentario,
+            inicioreal: inicio,
+            finreal: fin,
+            avance: avance,
+            usuario: usuario,
+            lastupdate: lastupdate,
+            ActividadCancelada: ActividadCancelada
+        }
+    }, { new: true })
+
+    const updated = await updatemodel.find({ idtask })
+
+    if (updated) {
+        await Promise.all(updated.map(async (item) => {
+            await updatemodel.findByIdAndUpdate(item._id, {
+                $set: {
+                    vigente: "No"
+                }
+            })
+        }))
+    }
+
+    req.body.inicio = newinicio;
+    req.body.fin = newfin;
+    req.body.idtask = idtask;
+    const dataupdated = new updatemodel(req.body)
+    await dataupdated.save();
+
+    console.log("ejecutando request updatedata");
+    res.status(200).json(data)
+}
+
+const getdatahistory = async (req, res) => {
+    console.log("ejecutando get data history");
+    const data = await updatemodel.find({}).sort({ id: 1 })
+    res.status(200).json({ data })
+}
+
+
+//Reporte  de Falla
 const registerform = async (req, res) => {
 
     //Determinar el ID
@@ -252,143 +365,40 @@ const getsingledata = async (req, res) => {
 
 }
 
-const getfiltersdata = async (req, res) => {
-    console.log("ejecutando datos para filtros");
 
-    const uniqueResponsables = await taskmodel.distinct('responsable');
-    const uniqueContratistas = await taskmodel.distinct('contratista');
-    const uniqueEstados = await taskmodel.distinct('estado');
+//Reporte de Polines
+const uploadexcelTemp = (req, res) => {
 
-    const data = [];
-
-    for (let i = 0; i < uniqueResponsables.length; i++) {
-        const uniqueValueObject = {
-            responsable: uniqueResponsables[i],
-            contratista: uniqueContratistas[i],
-            estado: uniqueEstados[i],
-        };
-        data.push(uniqueValueObject);
-    }
-
-    res.status(200).json({ data })
-}
-
-const getscheduledata = async (req, res) => {
-    console.log("ejecutando request getalldata");
-    const data = await taskmodel.find({}).sort({ id: 1 })
-    res.status(200).json({ data })
-}
-
-const statusupdate = async (req, res) => {
-    console.log("actualizando status");
-    const { fechaActual } = req.body;
-    const data = await taskmodel.find({}).sort({ id: 1 })
-
-    data.map(async (task) => {
-        const fechainiciobd = new Date(task.inicioplan)
-        const fechafinbd = new Date(task.finplan)
-        const fechafrontend = new Date(fechaActual)
+    console.log("ejecutando carga de datos");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
 
 
-        if (task.avance === undefined) {
-            // console.log("No iniciado");
-            const data = await taskmodel.findByIdAndUpdate(task._id, {
-                $set: {
-                    estado: "No iniciado"
-                }
-            })
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new polinestagmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
         }
 
-        if (fechafrontend > fechainiciobd && task.avance === undefined) {
-            // console.log("tarea atrasada");
-            const data = await taskmodel.findByIdAndUpdate(task._id, {
-                $set: {
-                    estado: "Atrasado"
-                }
-            })
-        }
-
-        if (fechafrontend > fechafinbd && task.avance !== 100) {
-            // console.log("tarea atrasada");
-            const data = await taskmodel.findByIdAndUpdate(task._id, {
-                $set: {
-                    estado: "Atrasado"
-                }
-            })
-        }
-
-
-
-        if (task.avance === 100) {
-            // console.log("Finalizado");
-            const data = await taskmodel.findByIdAndUpdate(task._id, {
-                $set: {
-                    estado: "Finalizado"
-                }
-            })
-        }
-    })
-}
-
-const filtereddata = async (req, res) => {
-    console.log("ejecutando request filtereddata");
-    const { id } = req.query
-    const data = await taskmodel.find({ id })
-    res.status(200).json(data[0])
-}
-
-const updatedata = async (req, res) => {
-    const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente } = req.body;
-
-    const formatearFecha = (fecha) => {
-        if (!fecha) return null;
-        const [fechaParte, horaParte] = fecha.split('T');
-        const [anio, mes, dia] = fechaParte.split('-');
-        const [hora, minutos] = horaParte.split(':');
-        return `${dia}/${mes}/${anio}, ${hora}:${minutos}`;
-    };
-
-    const newinicio = formatearFecha(inicio);
-    const newfin = formatearFecha(fin);
-
-    const data = await taskmodel.findByIdAndUpdate(id, {
-        $set: {
-            comentarios: comentario,
-            inicioreal: inicio,
-            finreal: fin,
-            avance: avance,
-            usuario: usuario,
-            lastupdate: lastupdate,
-            ActividadCancelada: ActividadCancelada
-        }
-    }, { new: true })
-
-    const updated = await updatemodel.find({ idtask })
-
-    if (updated) {
-        await Promise.all(updated.map(async (item) => {
-            await updatemodel.findByIdAndUpdate(item._id, {
-                $set: {
-                    vigente: "No"
-                }
-            })
-        }))
-    }
-
-    req.body.inicio = newinicio;
-    req.body.fin = newfin;
-    req.body.idtask = idtask;
-    const dataupdated = new updatemodel(req.body)
-    await dataupdated.save();
-
-    console.log("ejecutando request updatedata");
-    res.status(200).json(data)
-}
-
-const getdatahistory = async (req, res) => {
-    console.log("ejecutando get data history");
-    const data = await updatemodel.find({}).sort({ id: 1 })
-    res.status(200).json({ data })
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 const getpolinesdata = async (req, res) => {
@@ -473,232 +483,6 @@ const getpolinesregisterdata = async (req, res) => {
     console.log("ejecutando request getpolinesregister");
     const data = await polinesreportmodel.find({})
     res.status(200).json({ data })
-}
-
-const uploadexcelIndicadoresMantto = (req, res) => {
-
-    console.log("ejecutando carga de datos de indicadores mantto");
-    const bufferData = req.file.buffer;
-    const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
-
-    const dataPromises = excelData.map(async (rowData) => {
-
-        try {
-
-            console.log("cargando datos");
-            const data = new baseindicadoresmodel(rowData);
-            await data.save();
-
-        } catch (error) {
-            console.error('Error al guardar el dato:', error);
-        }
-
-    });
-    Promise.all(dataPromises)
-        .then(() => {
-            console.log('Todos los datos guardados en la base de datos');
-            res.status(200).json({ message: 'Datos guardados en la base de datos' });
-        })
-        .catch((error) => {
-            console.error('Error al guardar los datos:', error);
-            res.status(500).json({ error: 'Error al guardar los datos' });
-        })
-}
-
-const uploadexceliw37nbase = (req, res) => {
-
-    console.log("ejecutando carga de datos iw37nbase");
-    const bufferData = req.file.buffer;
-    const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
-
-    const dataPromises = excelData.map(async (rowData) => {
-
-        try {
-
-            console.log("cargando datos");
-            const data = new iw37nbasemodel(rowData);
-            await data.save();
-
-        } catch (error) {
-            console.error('Error al guardar el dato:', error);
-        }
-
-    });
-    Promise.all(dataPromises)
-        .then(() => {
-            console.log('Todos los datos guardados en la base de datos');
-            res.status(200).json({ message: 'Datos guardados en la base de datos' });
-        })
-        .catch((error) => {
-            console.error('Error al guardar los datos:', error);
-            res.status(500).json({ error: 'Error al guardar los datos' });
-        })
-}
-
-const uploadexceliw37nreport = (req, res) => {
-
-    console.log("ejecutando carga de datos de IW37nReport");
-    const bufferData = req.file.buffer;
-    const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
-
-    const dataPromises = excelData.map(async (rowData) => {
-
-        try {
-
-            console.log("cargando datos");
-            const data = new iw37nreportmodel(rowData);
-            await data.save();
-
-        } catch (error) {
-            console.error('Error al guardar el dato:', error);
-        }
-
-    });
-    Promise.all(dataPromises)
-        .then(() => {
-            console.log('Todos los datos guardados de IW37nReport en la base de datos');
-            res.status(200).json({ message: 'Datos guardados en la base de datos' });
-        })
-        .catch((error) => {
-            console.error('Error al guardar los datos:', error);
-            res.status(500).json({ error: 'Error al guardar los datos' });
-        })
-}
-
-const uploadexceliw39report = (req, res) => {
-
-    console.log("ejecutando carga de datos de iw39report");
-    const bufferData = req.file.buffer;
-    const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
-
-    const dataPromises = excelData.map(async (rowData) => {
-
-        try {
-
-            console.log("cargando datos");
-            const data = new iw39reportmodel(rowData);
-            await data.save();
-
-        } catch (error) {
-            console.error('Error al guardar el dato:', error);
-        }
-
-    });
-    Promise.all(dataPromises)
-        .then(() => {
-            console.log('Todos los datos de iw39report guardados en la base de datos');
-            res.status(200).json({ message: 'Datos guardados en la base de datos' });
-        })
-        .catch((error) => {
-            console.error('Error al guardar los datos:', error);
-            res.status(500).json({ error: 'Error al guardar los datos' });
-        })
-}
-
-const deleteallIndicadores = async (req, res) => {
-    console.log("borrando todos los datos de indicadores");
-    baseindicadoresmodel.deleteMany({})
-        .then(() => {
-            console.log('Todos los datos de indicadores eliminados correctamente');
-        })
-        .catch((error) => {
-            console.error('Error al eliminar documentos:', error);
-        });
-}
-
-const deleteallIW37nBase = async (req, res) => {
-    console.log("borrando todos los datos de Iw37n Base");
-    iw37nbasemodel.deleteMany({})
-        .then(() => {
-            console.log('Todos los datos de Iw37n Base eliminados correctamente');
-        })
-        .catch((error) => {
-            console.error('Error al eliminar documentos:', error);
-        });
-}
-
-const deleteallIw37nreport = async (req, res) => {
-    console.log("borrando todos los datos de IW37n Report");
-    iw37nreportmodel.deleteMany({})
-        .then(() => {
-            console.log('Todos los datos de IW37n Report eliminados correctamente');
-            res.status(200).send("Todos los datos de IW37n Report eliminados correctamente")
-        })
-        .catch((error) => {
-            console.error('Error al eliminar documentos:', error);
-        });
-}
-
-const deleteallIW39 = async (req, res) => {
-    console.log("borrando todos los datos de IW39");
-    iw39reportmodel.deleteMany({})
-        .then(() => {
-            console.log('Todos los datos de IW39 eliminados correctamente');
-            res.status(200).send('Todos los datos de IW39 eliminados correctamente')
-        })
-        .catch((error) => {
-            console.error('Error al eliminar documentos:', error);
-        });
-}
-
-const getalldataIndicadores = async (req, res) => {
-
-    console.log("ejecutando get all data de Indicadores");
-    const data = await baseindicadoresmodel.find({})
-    res.status(200).json(data)
-
-}
-
-const getalldataIW37nBase = async (req, res) => {
-
-    console.log("ejecutando get all data de IW37nBase");
-    const data = await iw37nbasemodel.find({})
-    res.status(200).json(data)
-
-}
-
-const DeleteDataIW37nBase = async (req, res) => {
-    console.log("Borrando los datos del IW37N Base");
-    try {
-        await iw37nbasemodel.deleteMany({ "Revisión": 'SEM09-24' });
-        console.log('Todos los datos de la semana borrados');
-        res.status(200).send('Todos los datos de la semana borrados');
-    } catch (error) {
-        console.error('Error al eliminar documentos:', error);
-        res.status(500).send('Error al eliminar documentos');
-    }
-}
-
-const getalldataIW37nReport = async (req, res) => {
-
-    console.log("ejecutando get all data de IW37nReport");
-    const data = await iw37nreportmodel.find({})
-    res.status(200).json(data)
-
-}
-
-const getalldataIW39Report = async (req, res) => {
-
-    console.log("ejecutando get all data de IW39Report");
-    const data = await iw39reportmodel.find({})
-    res.status(200).json(data)
-
 }
 
 const pruebacronologica = (req, res) => {
@@ -870,6 +654,271 @@ const borrandoDatosAutomaticos = async (req, res) => {
 
 }
 
+
+//Reporte de Indicadores de Mantenimiento
+const uploadexcelIndicadoresMantto = (req, res) => {
+
+    console.log("ejecutando carga de datos de indicadores mantto");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new baseindicadoresmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+const uploadexceliw37nbase = (req, res) => {
+
+    console.log("ejecutando carga de datos iw37nbase");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new iw37nbasemodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+const uploadexceliw37nreport = (req, res) => {
+
+    console.log("ejecutando carga de datos de IW37nReport");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new iw37nreportmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados de IW37nReport en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+const uploadexceliw39report = (req, res) => {
+
+    console.log("ejecutando carga de datos de iw39report");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new iw39reportmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos de iw39report guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+const uploadexcelroster = async (req,res)=>{
+
+    console.log("borrando todos los datos del Roster");
+    await RosterModel.deleteMany({})
+
+
+    console.log("ejecutando carga de datos de Roster");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new RosterModel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos del Roster guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+    
+}
+
+const deleteallIndicadores = async (req, res) => {
+    console.log("borrando todos los datos de indicadores");
+    baseindicadoresmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de indicadores eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIW37nBase = async (req, res) => {
+    console.log("borrando todos los datos de Iw37n Base");
+    iw37nbasemodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de Iw37n Base eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIw37nreport = async (req, res) => {
+    console.log("borrando todos los datos de IW37n Report");
+    iw37nreportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de IW37n Report eliminados correctamente');
+            res.status(200).send("Todos los datos de IW37n Report eliminados correctamente")
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deleteallIW39 = async (req, res) => {
+    console.log("borrando todos los datos de IW39");
+    iw39reportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de IW39 eliminados correctamente');
+            res.status(200).send('Todos los datos de IW39 eliminados correctamente')
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const getalldataIndicadores = async (req, res) => {
+
+    console.log("ejecutando get all data de Indicadores");
+    const data = await baseindicadoresmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldataIW37nBase = async (req, res) => {
+
+    console.log("ejecutando get all data de IW37nBase");
+    const data = await iw37nbasemodel.find({})
+    res.status(200).json(data)
+
+}
+
+const DeleteDataIW37nBase = async (req, res) => {
+    console.log("Borrando los datos del IW37N Base");
+    try {
+        await iw37nbasemodel.deleteMany({ "Revisión": 'SEM09-24' });
+        console.log('Todos los datos de la semana borrados');
+        res.status(200).send('Todos los datos de la semana borrados');
+    } catch (error) {
+        console.error('Error al eliminar documentos:', error);
+        res.status(500).send('Error al eliminar documentos');
+    }
+}
+
+const getalldataIW37nReport = async (req, res) => {
+
+    console.log("ejecutando get all data de IW37nReport");
+    const data = await iw37nreportmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldataIW39Report = async (req, res) => {
+
+    console.log("ejecutando get all data de IW39Report");
+    const data = await iw39reportmodel.find({})
+    res.status(200).json(data)
+
+}
+
+
+//Inducción Parada de Planta
 const RegistroInduccion = async (req, res) => {
 
     console.log(req.body);
@@ -951,6 +1000,8 @@ const ObtenerRegistroContratistas = async (req,res) =>{
 
 }
 
+
+
 module.exports = {
     registerform,
     getalldata,
@@ -980,6 +1031,7 @@ module.exports = {
     uploadexceliw37nbase,
     uploadexceliw37nreport,
     uploadexceliw39report,
+    uploadexcelroster,
 
     deleteallIndicadores,
     deleteallIW37nBase,
