@@ -9,6 +9,7 @@ const polinesschema = mongoose.Schema({
     Bastidor: String,
     Sector: String,
     Posicion: String,
+    Estado: String,
     deleted: { type: Boolean, default: false }
 },
     {

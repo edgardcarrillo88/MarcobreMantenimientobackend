@@ -559,34 +559,7 @@ const prueba = async (req, res) => {
 
             // Manejo de coincidencias del día anterior
             if (CoincidenciaDelDia.length === 0 && coincidenciaAnterior.length !== 0) {
-                // const Objeto = coincidenciaAnterior[0];
 
-                // // Verificar si el objeto ya ha sido creado anteriormente
-                // const objetoRepetido = objetosCreados.find(obj =>
-                //     obj.Tag === Objeto.Tag && obj.Ubicacion === Objeto.Ubicacion &&
-                //     obj.Bastidor === Objeto.Bastidor && obj.Posicion === Objeto.Posicion
-                // );
-
-                // if (!objetoRepetido) {
-
-                //     const nuevoObjeto = new polinesreportmodel({
-                //         Tag: Objeto.Tag,
-                //         Ubicacion: Objeto.Ubicacion,
-                //         Bastidor: Objeto.Bastidor,
-                //         Posicion: Objeto.Posicion,
-                //         Fecha: today,
-                //         Estado: Objeto.Posicion,
-                //         TipoReporte: "Automático",
-                //         Usuario: "Automático",
-                //     });
-
-                //     objetosCreados.push(Objeto);
-
-                //     await nuevoObjeto.save();
-                //     console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines:', nuevoObjeto);
-                // } else {
-                //     console.log('El objeto ya ha sido creado anteriormente:', objetoRepetido);
-                // }
 
                 const nuevosObjetos = coincidenciaAnterior.map(Objeto => {
                     // Verificar si el objeto ya ha sido creado anteriormente
@@ -621,22 +594,25 @@ const prueba = async (req, res) => {
                     console.log('Todos los objetos ya han sido creados anteriormente.');
                 }
 
-                // return nuevoObjeto.save().then(nuevoObjetoCreado => {
-                //     console.log('Se creó un nuevo objeto en la Base de Datos de reporte de polines:', nuevoObjetoCreado);
-                // }).catch(error => {
-                //     console.error('Error al crear un nuevo objeto en la Base de Datos de reporte de polines:', error);
-                // });
+
             } else {
                 console.log('No se encontraron coincidencias en la Base de Datos de reporte de polines para el día anterior.');
-                // return Promise.resolve(); // Resuelve la promesa si no hay coincidencias
             }
         }));
 
-        // res.status(200).send('Proceso completado correctamente.');
+        BasePolines.forEach(async (item) => {
+            item.Estado = "";
+            await item.save();
+        });
+
+
+
+
+
         console.log('Proceso completado correctamente.');
+
     } catch (error) {
         console.error('Error en el proceso:', error);
-        // res.status(500).send('Error en el servidor.');
     }
 }
 
@@ -650,6 +626,58 @@ const borrandoDatosAutomaticos = async (req, res) => {
     } catch (error) {
         console.error('Error al eliminar documentos:', error);
         res.status(500).send('Error al eliminar documentos');
+    }
+
+}
+
+const CambioPolines = async (req, res) => {
+
+    console.log("ejecutando registro de cambio de polines");
+
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+
+    let files = [];
+    if (req.files && req.files.files) {
+        const files = req.files.files.map(file => {
+            return {
+                data: file.buffer,
+                contentType: file.mimetype
+            };
+        });
+    }
+
+    // const initialData = JSON.parse(req.body.initaldata);
+    // console.log(initialData);
+
+    try {
+        for (const data of req.body) {
+            const polinesData = {
+                Tag: data.Tag,
+                Ubicacion: data.Ubicacion,
+                Bastidor: data.Bastidor,
+                Posicion: data.Posicion,
+                Estado: "Cambio",
+                _id: data._id
+            };
+
+            // const dataPrincipal = new polinestagmodel(polinesData);
+            console.log(polinesData._id);
+            const dataPrincipal = await polinestagmodel.findByIdAndUpdate(polinesData._id, {
+                $set: {
+                    Estado: "Cambio"
+                }
+            }, { new: true });
+            console.log(dataPrincipal);
+            // await dataPrincipal.save();
+
+        }
+
+        res.status(200).json({ success: true, message: "Datos de polines registrados correctamente" });
+
+    } catch (error) {
+        console.error('Error al registrar datos de polines:', error);
+        res.status(500).json({ success: false, message: "Error al registrar datos de polines" });
     }
 
 }
@@ -790,7 +818,7 @@ const uploadexceliw39report = (req, res) => {
         })
 }
 
-const uploadexcelroster = async (req,res)=>{
+const uploadexcelroster = async (req, res) => {
 
     console.log("borrando todos los datos del Roster");
     await RosterModel.deleteMany({})
@@ -824,7 +852,7 @@ const uploadexcelroster = async (req,res)=>{
             console.error('Error al guardar los datos:', error);
             res.status(500).json({ error: 'Error al guardar los datos' });
         })
-    
+
 }
 
 const deleteallIndicadores = async (req, res) => {
@@ -932,25 +960,25 @@ const RegistroInduccion = async (req, res) => {
             }
         })
         console.log(response.data);
-        res.status(200).send({Message: "Registro realizado con éxito", Informacion: response.data})
+        res.status(200).send({ Message: "Registro realizado con éxito", Informacion: response.data })
         const Registro = new Induccionmodel({
             FechaInicio,
             FechaFin,
             dni: DNI,
-            nombres:response.data.nombres,
-            apellidoPaterno:response.data.apellidoPaterno,
-            apellidoMaterno:response.data.apellidoMaterno,
+            nombres: response.data.nombres,
+            apellidoPaterno: response.data.apellidoPaterno,
+            apellidoMaterno: response.data.apellidoMaterno,
         });
         await Registro.save();
         console.log("Registro realizado con éxito");
     } catch (error) {
         console.log("Error al realizar registro");
-        res.status(404).send({Message: "Error al realizar registro"})
+        res.status(404).send({ Message: "Error al realizar registro" })
     }
 
 }
 
-const ObtenerRegistroInduccion = async (req,res) =>{
+const ObtenerRegistroInduccion = async (req, res) => {
 
     console.log("Obteniendo registros de inducción");
     const data = await Induccionmodel.find({})
@@ -992,7 +1020,7 @@ const uploadexcelPersonalContratistas = (req, res) => {
         })
 }
 
-const ObtenerRegistroContratistas = async (req,res) =>{
+const ObtenerRegistroContratistas = async (req, res) => {
 
     console.log("Obteniendo registros de inducción");
     const data = await PersonalContratistamodel.find({})
@@ -1026,6 +1054,7 @@ module.exports = {
     DeletePolinesReport,
     registerpolines,
     getpolinesregisterdata,
+    CambioPolines,
 
     uploadexcelIndicadoresMantto,
     uploadexceliw37nbase,

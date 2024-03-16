@@ -149,19 +149,14 @@ const deleteallBudgetplanta = async (req, res) => {
 const UpdateSingleMonth = async (req, res) => {
     
     console.log("Ejecutando actualización por fila");
-    console.log(req.body);
     const { RowId, MesValue } = req.body;
-    console.log(!MesValue);
-    console.log(RowId);
 
     if (!MesValue) {
         return res.status(400).send("Falta información necesaria para la actualización.");
     }
 
     try {
-        console.log("Actualizando");
         const data = await actualPlantamodel.findByIdAndUpdate(RowId, { Mes: MesValue }, { new: true });
-        console.log(data);
         if (!data) {
             return res.status(404).send("No se encontró el documento para actualizar.");
         }

@@ -29,6 +29,7 @@ datarouter.get('/getinducciondata',datacontroller.ObtenerRegistroInduccion)
 datarouter.get('/getcontratistas',datacontroller.ObtenerRegistroContratistas)
 
 //Registro de Polines
+datarouter.post('/loaddatatemp',datacontroller.uploadexcelTemp)
 datarouter.get('/polines',datacontroller.getpolinesdata)
 datarouter.post('/deletepolines',datacontroller.deleteallpolines)
 datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
@@ -36,6 +37,7 @@ datarouter.post('/deletereportpolines',datacontroller.DeletePolinesReport)
 datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
 datarouter.post('/prueba',datacontroller.prueba)
 datarouter.post('/eliminarautomaticos',datacontroller.borrandoDatosAutomaticos)
+datarouter.post('/cambiopolines',datacontroller.CambioPolines)
 
 //Status de Indicadores de Mantenimiento
 datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)
