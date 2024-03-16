@@ -29,8 +29,9 @@ const RosterModel = require('../models/roster')
 //Parada de Planta
 const uploadexcel = (req, res) => {
 
-    const filepath = req.file.path
-    const workbook = xlsx.readFile(filepath)
+    console.log("ejecutando carga de datos");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
