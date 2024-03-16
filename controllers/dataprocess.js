@@ -213,6 +213,28 @@ const getdatahistory = async (req, res) => {
     res.status(200).json({ data })
 }
 
+const deleteschedule = async (req, res) => {
+    console.log("borrando todos los dato del cronograma");
+    taskmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos del cronograma eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
+const deletehistorydata = async (req, res) => {
+    console.log("borrando todos los dato del historial de actualización del cronograma");
+    updatemodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de actualización del cronograma eliminados correctamente');
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
+}
+
 
 //Reporte  de Falla
 const registerform = async (req, res) => {
@@ -1035,7 +1057,10 @@ module.exports = {
     getalldata,
     getsingledata,
     getfiltersdata,
+
     getscheduledata,
+    deleteschedule,
+    deletehistorydata,
     statusupdate,
     uploadexcel,
     filtereddata,
@@ -1044,6 +1069,7 @@ module.exports = {
     updatedata,
     getdatahistory,
     uploadexcelTemp,
+
     RegistroInduccion,
     ObtenerRegistroInduccion,
     ObtenerRegistroContratistas,

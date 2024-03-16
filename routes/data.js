@@ -18,6 +18,9 @@ datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
 datarouter.get('/schedule',datacontroller.getscheduledata)
 datarouter.get('/taskhistorydata',datacontroller.getdatahistory)
+datarouter.post('/deleteschedule',datacontroller.deleteschedule)
+datarouter.post('/deleteschedulehistorydata',datacontroller.deletehistorydata)
+
 
 datarouter.get('/filters',datacontroller.getfiltersdata)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
