@@ -21,7 +21,17 @@ const taskschema = mongoose.Schema({
     curva:String,
     lastupdate: String,       
     rutacritica: String,   
-    ActividadCancelada: String,    
+    ActividadCancelada: String,
+    Labor: {
+        Mecanicos: { type: Number, default: 0 },
+        Soldadores: { type: Number, default: 0 },
+        Vigias: { type: Number, default: 0 }
+      },
+      NoLabor: {
+        Andamios: { type: Boolean, default: false },
+        CamionGrua: { type: Boolean, default: false },
+        Telescopica: { type: Boolean, default: false }
+      },   
     deleted: {type: Boolean, default:false}
 },
 {

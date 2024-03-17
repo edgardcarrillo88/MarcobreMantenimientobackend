@@ -161,7 +161,7 @@ const filtereddata = async (req, res) => {
 }
 
 const updatedata = async (req, res) => {
-    const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente } = req.body;
+    const { id, idtask, comentario, inicio, fin, avance, usuario, lastupdate, ActividadCancelada, vigente, Labor, NoLabor } = req.body;
 
     const formatearFecha = (fecha) => {
         if (!fecha) return null;
@@ -182,7 +182,9 @@ const updatedata = async (req, res) => {
             avance: avance,
             usuario: usuario,
             lastupdate: lastupdate,
-            ActividadCancelada: ActividadCancelada
+            ActividadCancelada: ActividadCancelada,
+            Labor: Labor,
+            NoLabor: NoLabor
         }
     }, { new: true })
 
