@@ -746,12 +746,11 @@ const uploadexcelIndicadoresMantto = (req, res) => {
 const uploadexceliw37nbase = (req, res) => {
 
     console.log("ejecutando carga de datos iw37nbase");
+    console.log(req.file);
     const bufferData = req.file.buffer;
     const workbook = xlsx.read(bufferData, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
 
     const dataPromises = excelData.map(async (rowData) => {
 
