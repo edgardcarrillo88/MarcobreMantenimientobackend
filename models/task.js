@@ -25,7 +25,9 @@ const taskschema = mongoose.Schema({
     Labor: {
         Mecanicos: { type: Number, default: 0 },
         Soldadores: { type: Number, default: 0 },
-        Vigias: { type: Number, default: 0 }
+        Vigias: { type: Number, default: 0 },
+        Electricista: { type: Number, default: 0 },
+        Instrumentista: { type: Number, default: 0 }
       },
       NoLabor: {
         Andamios: { type: Boolean, default: false },
