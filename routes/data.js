@@ -1,6 +1,7 @@
 const express = require('express');
 const datarouter = express.Router()
 const datacontroller = require('../controllers/dataprocess');
+const controllerprueba = require('../controllers/message');
 const upload = require('../middleware/fileprocess');
 const uploadMiddleware = require('../middleware/dailyprocess');
 const uploadMiddlewarePolines = require('../middleware/polinesprocess');
@@ -31,6 +32,11 @@ datarouter.post('/registroinduccion',datacontroller.RegistroInduccion)
 datarouter.get('/getinducciondata',datacontroller.ObtenerRegistroInduccion)
 datarouter.get('/getcontratistas',datacontroller.ObtenerRegistroContratistas)
 
+datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
+datarouter.post('/updatevalidation',datacontroller.UpdateValidation)
+
+
+
 //Registro de Polines
 datarouter.post('/loaddatatemp',datacontroller.uploadexcelTemp)
 datarouter.get('/polines',datacontroller.getpolinesdata)
@@ -38,7 +44,7 @@ datarouter.post('/deletepolines',datacontroller.deleteallpolines)
 datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
 datarouter.post('/deletereportpolines',datacontroller.DeletePolinesReport)
 datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
-datarouter.post('/prueba',datacontroller.prueba)
+// datarouter.post('/prueba',datacontroller.prueba)
 datarouter.post('/eliminarautomaticos',datacontroller.borrandoDatosAutomaticos)
 datarouter.post('/cambiopolines',datacontroller.CambioPolines)
 
@@ -53,6 +59,10 @@ datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
 datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
 datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)
+
+
+//Envío de mensajes
+datarouter.post('/prueba',controllerprueba.SendMessage)
 
 
 module.exports = datarouter

@@ -10,6 +10,7 @@ const updatetaskschema = mongoose.Schema({
     usuario: String,
     vigente: String,
     ActividadCancelada: String,
+    Validado: String,
     deleted: {type: Boolean, default:false}
 },
 {

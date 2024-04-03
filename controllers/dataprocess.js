@@ -240,6 +240,28 @@ const deletehistorydata = async (req, res) => {
         });
 }
 
+const GetValidationData = async (req, res) => {
+    console.log("ejecutando get data history");
+    const datatask = await updatemodel.find({
+        vigente: "Si"
+    })
+    const data = datatask.filter(item => item.Validado !== "Si")
+    
+    res.status(200).json({ data })
+}
+
+const UpdateValidation = async (req, res) => {
+    console.log("ACtualización validación");
+    console.log(req.body);
+    const data = await updatemodel.findByIdAndUpdate(req.body._id, {
+        $set: {
+            Validado: "Si"
+        }
+    }, { new: true })
+    console.log(data);
+    res.status(200).json({data})
+}
+
 
 //Reporte  de Falla
 const registerform = async (req, res) => {
@@ -1073,6 +1095,8 @@ module.exports = {
     updatedata,
     getdatahistory,
     uploadexcelTemp,
+    GetValidationData,
+    UpdateValidation,
 
     RegistroInduccion,
     ObtenerRegistroInduccion,

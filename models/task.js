@@ -22,6 +22,7 @@ const taskschema = mongoose.Schema({
     lastupdate: String,       
     rutacritica: String,   
     ActividadCancelada: String,
+    SupResponsable: String,
     Labor: {
         Mecanicos: { type: Number, default: 0 },
         Soldadores: { type: Number, default: 0 },
