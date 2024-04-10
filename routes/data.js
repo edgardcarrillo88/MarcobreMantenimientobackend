@@ -6,17 +6,19 @@ const upload = require('../middleware/fileprocess');
 const uploadMiddleware = require('../middleware/dailyprocess');
 const uploadMiddlewarePolines = require('../middleware/polinesprocess');
 
+
 //Reporte rápido de Falla
 datarouter.post('/registerform',upload.array('files'),datacontroller.registerform)
 datarouter.get('/getalldata',datacontroller.getalldata)
 datarouter.get('/getsingledata',datacontroller.getsingledata)
 
+
 //Reporte diario de contratistas
 datarouter.post('/dailyreport',uploadMiddleware,datacontroller.dailyreport)
 datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
-//Parada de Planta
 
+//Parada de Planta
 datarouter.get('/schedule',datacontroller.getscheduledata)
 datarouter.get('/taskhistorydata',datacontroller.getdatahistory)
 datarouter.post('/deleteschedule',datacontroller.deleteschedule)
@@ -36,7 +38,6 @@ datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
 datarouter.post('/updatevalidation',datacontroller.UpdateValidation)
 
 
-
 //Registro de Polines
 datarouter.post('/loaddatatemp',datacontroller.uploadexcelTemp)
 datarouter.get('/polines',datacontroller.getpolinesdata)
@@ -47,6 +48,8 @@ datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
 // datarouter.post('/prueba',datacontroller.prueba)
 datarouter.post('/eliminarautomaticos',datacontroller.borrandoDatosAutomaticos)
 datarouter.post('/cambiopolines',datacontroller.CambioPolines)
+datarouter.get('/getlastpolinesreport',datacontroller.GetLastPolinesReport)
+
 
 //Status de Indicadores de Mantenimiento
 datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)

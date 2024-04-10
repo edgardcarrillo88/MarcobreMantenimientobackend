@@ -246,7 +246,7 @@ const GetValidationData = async (req, res) => {
         vigente: "Si"
     })
     const data = datatask.filter(item => item.Validado !== "Si")
-    
+
     res.status(200).json({ data })
 }
 
@@ -259,7 +259,7 @@ const UpdateValidation = async (req, res) => {
         }
     }, { new: true })
     console.log(data);
-    res.status(200).json({data})
+    res.status(200).json({ data })
 }
 
 
@@ -731,6 +731,33 @@ const CambioPolines = async (req, res) => {
 
 }
 
+const GetLastPolinesReport = async (req, res) => {
+
+    console.log("ejecutando request de ultimo reporte");
+
+    const LastDate = new Date();
+    LastDate.setDate(LastDate.getDate());
+    LastDate.setHours(0, 0, 0, 0);
+
+    const LastTwoDate = new Date();
+    LastTwoDate.setDate(LastTwoDate.getDate() - 1);
+    LastTwoDate.setHours(0, 0, 0, 0);
+
+    const data = await polinesreportmodel.find({
+        Fecha: { $lt: LastDate, $gt: LastTwoDate },
+    })
+
+    // const LastDateData = data.data.data.filter(object => {
+    //     const ObjectDate = new Date(object.Fecha)
+
+    //     return ObjectDate < LastDate && object.Bastidor === "1" && object.Tag === "3232-CV-315" && object.Ubicacion === "Carga"
+    // })
+
+    console.log(data);
+    res.status(200).json({ data })
+
+}
+
 
 //Reporte de Indicadores de Mantenimiento
 const uploadexcelIndicadoresMantto = (req, res) => {
@@ -1109,6 +1136,7 @@ module.exports = {
     registerpolines,
     getpolinesregisterdata,
     CambioPolines,
+    GetLastPolinesReport,
 
     uploadexcelIndicadoresMantto,
     uploadexceliw37nbase,
