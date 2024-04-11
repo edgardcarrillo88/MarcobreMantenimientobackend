@@ -13,6 +13,7 @@ const taskschema = mongoose.Schema({
     estado: String,
     responsable: String,
     contratista: String,
+    especialidad: String,
     comentarios: String,
     inicioreal: String,
     finreal: String,
