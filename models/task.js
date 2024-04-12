@@ -14,6 +14,7 @@ const taskschema = mongoose.Schema({
     responsable: String,
     contratista: String,
     especialidad: String,
+    BloqueRC: String,
     comentarios: String,
     inicioreal: String,
     finreal: String,

@@ -80,6 +80,7 @@ const getfiltersdata = async (req, res) => {
 
     const uniqueResponsables = await taskmodel.distinct('responsable');
     const uniqueContratistas = await taskmodel.distinct('contratista');
+    console.log(uniqueContratistas);
     const uniqueEstados = await taskmodel.distinct('estado');
 
     const data = [];
