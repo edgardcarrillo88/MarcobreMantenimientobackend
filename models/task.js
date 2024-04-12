@@ -25,6 +25,7 @@ const taskschema = mongoose.Schema({
     rutacritica: String,   
     ActividadCancelada: String,
     SupResponsable: String,
+    Otros:String,
     Labor: {
         Mecanicos: { type: Number, default: 0 },
         Soldadores: { type: Number, default: 0 },
