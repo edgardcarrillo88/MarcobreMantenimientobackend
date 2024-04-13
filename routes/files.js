@@ -4,6 +4,7 @@ const Upload =  require('../middleware/excelprocess')
 const filecontroller = require('../controllers/dataprocess');
 
 filesrouter.post('/',Upload.single('file'),filecontroller.uploadexcel)
+filesrouter.post('/updatebaseline',Upload.single('file'),filecontroller.UpdateBaseLine)
 filesrouter.post('/loaddatatemp',Upload.single('file'),filecontroller.uploadexcelTemp)
 
 //Indicadores de Mantenimiento

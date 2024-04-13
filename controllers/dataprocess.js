@@ -104,18 +104,38 @@ const getscheduledata = async (req, res) => {
 }
 
 const statusupdate = async (req, res) => {
+
     console.log("actualizando status");
     const { fechaActual } = req.body;
+
+    const fecha = new Date(fechaActual);
+    // console.log("Fecha original:", fecha);
+
+    const fechacorregida = fecha.setHours(fecha.getHours() - 5);
+    // console.log("Fecha después de restar 5 horas:", fechacorregida);
+
+
+
+
     const data = await taskmodel.find({}).sort({ id: 1 })
 
     data.map(async (task) => {
         const fechainiciobd = new Date(task.inicioplan)
         const fechafinbd = new Date(task.finplan)
-        const fechafrontend = new Date(fechaActual)
+        const fechafrontend = new Date(fechacorregida)
 
 
-        if (task.avance === undefined) {
+        // console.log("-------");
+        // console.log(task.id);
+        // console.log(task.inicioreal);
+        // console.log(!task.inicioreal);
+        // console.log(task.avance===0);
+        // console.log("-------");
+
+
+        if (!task.inicioreal) {
             // console.log("No iniciado");
+
             const data = await taskmodel.findByIdAndUpdate(task._id, {
                 $set: {
                     estado: "No iniciado"
@@ -123,7 +143,18 @@ const statusupdate = async (req, res) => {
             })
         }
 
-        if (fechafrontend > fechainiciobd && task.avance === undefined) {
+
+        if (fechafrontend > fechainiciobd && task.avance>0 && task.avance<100) {
+            // console.log("tarea atrasada");
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    estado: "En curso"
+                }
+            })
+        }
+
+
+        if (fechafrontend > fechainiciobd && task.avance === 0) {
             // console.log("tarea atrasada");
             const data = await taskmodel.findByIdAndUpdate(task._id, {
                 $set: {
@@ -131,6 +162,7 @@ const statusupdate = async (req, res) => {
                 }
             })
         }
+
 
         if (fechafrontend > fechafinbd && task.avance !== 100) {
             // console.log("tarea atrasada");
@@ -261,6 +293,59 @@ const UpdateValidation = async (req, res) => {
     }, { new: true })
     console.log(data);
     res.status(200).json({ data })
+}
+
+const UpdateBaseLine = (req, res) => {
+
+    console.log("ejecutando carga de datos");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const dataPromises = excelData.map(async (rowData) => {
+        try {
+            rowData.curva = 'Linea base'
+
+            console.log(rowData.inicioplan);
+            const fechainicio = new Date((rowData.inicioplan - 25569) * 86400 * 1000);
+            fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
+            console.log(fechainicio);
+            rowData.inicioplan = fechainicio.toISOString();
+            console.log(rowData.inicioplan);
+
+            console.log(rowData.finplan);
+            const fechafin = new Date((rowData.finplan - 25569) * 86400 * 1000);
+            fechafin.setMilliseconds(fechafin.getMilliseconds() + 100);
+            console.log(fechafin);
+            rowData.finplan = fechafin.toISOString();
+            console.log(rowData.finplan);
+
+            // const data = new taskmodel(rowData);
+            // await data.save();
+
+            const data = await taskmodel.findByIdAndUpdate(task._id, {
+                $set: {
+                    inicioplan: "No iniciado",
+                    finplan: "No iniciado",
+                    responsable: "No iniciado",
+                    contratista: "No iniciado",
+                }
+            })
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 
@@ -1125,6 +1210,7 @@ module.exports = {
     uploadexcelTemp,
     GetValidationData,
     UpdateValidation,
+    UpdateBaseLine,
 
     RegistroInduccion,
     ObtenerRegistroInduccion,
