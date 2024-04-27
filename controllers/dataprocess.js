@@ -348,6 +348,34 @@ const UpdateBaseLine = (req, res) => {
         })
 }
 
+const DeleteActivities = (req, res) => {
+
+    console.log("ejecutando eliminación de actividades especificas");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const dataPromises = excelData.map(async (rowData) => {
+        try {
+
+            console.log(rowData.id);
+
+        } catch (error) {
+            console.error('Error al eliminar la actividad:', error);
+        }
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todas las actibidades ingresadas fueron eliminadas');
+            res.status(200).json({ message: 'Datos eliminados de la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al eliminar los datos:', error);
+            res.status(500).json({ error: 'Error al eliminar los datos' });
+        })
+}
+
 
 //Reporte  de Falla
 const registerform = async (req, res) => {
@@ -1211,6 +1239,7 @@ module.exports = {
     GetValidationData,
     UpdateValidation,
     UpdateBaseLine,
+    DeleteActivities,
 
     RegistroInduccion,
     ObtenerRegistroInduccion,

@@ -111,7 +111,7 @@ const getalldataactualplanta = async (req, res) => {
 
     console.log("ejecutando get all data planta");
     // const data = await actualPlantamodel.find({})
-    const data = await actualPlantamodel.find({Mes:{$ne:0}})
+    const data = await actualPlantamodel.find({ Mes: { $ne: 0 } })
     res.status(200).json(data)
 
 }
@@ -147,9 +147,10 @@ const deleteallBudgetplanta = async (req, res) => {
 }
 
 const UpdateSingleMonth = async (req, res) => {
-    
+
     console.log("Ejecutando actualización por fila");
     const { RowId, MesValue } = req.body;
+    console.log(req.body);
 
     if (!MesValue) {
         return res.status(400).send("Falta información necesaria para la actualización.");
@@ -171,7 +172,19 @@ const UpdateSingleMonth = async (req, res) => {
 const UpdateGroupMonth = async (req, res) => {
     console.log(req.body);
     console.log("Ejecutando actualización por grupo");
-    res.status(200).send("Actualización exitosa")
+
+    const dataUpdated = req.body.map(async (item) => {
+        const data = await actualPlantamodel.findByIdAndUpdate(item._id, { Mes: parseInt(item.Mes) }, { new: true });
+    })
+    Promise.all(dataUpdated)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 }
 
 
