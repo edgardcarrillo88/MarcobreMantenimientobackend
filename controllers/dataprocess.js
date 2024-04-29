@@ -144,7 +144,7 @@ const statusupdate = async (req, res) => {
         }
 
 
-        if (fechafrontend > fechainiciobd && task.avance>0 && task.avance<100) {
+        if (fechafrontend > fechainiciobd && task.avance > 0 && task.avance < 100) {
             // console.log("tarea atrasada");
             const data = await taskmodel.findByIdAndUpdate(task._id, {
                 $set: {
@@ -646,6 +646,25 @@ const getpolinesregisterdata = async (req, res) => {
     console.log("ejecutando request getpolinesregister");
     const data = await polinesreportmodel.find({})
     res.status(200).json({ data })
+}
+
+const GetPOlinesReportStream = async (req, res) => {
+
+    console.log("ejecutando request getpolinesregister");
+
+    const stream = polinesreportmodel.find({}).stream();
+    stream.on('data', (data) => {
+        res.status(200).json({ data });
+    });
+
+    stream.on('error', (err) => {
+        console.error('Error al leer los datos:', err);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    });
+
+    stream.on('end', () => {
+        console.log('Se completó el envío de datos.');
+    });
 }
 
 const pruebacronologica = (req, res) => {
@@ -1253,6 +1272,7 @@ module.exports = {
     getpolinesregisterdata,
     CambioPolines,
     GetLastPolinesReport,
+    GetPOlinesReportStream,
 
     uploadexcelIndicadoresMantto,
     uploadexceliw37nbase,
