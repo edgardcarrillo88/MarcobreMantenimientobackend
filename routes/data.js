@@ -50,6 +50,7 @@ datarouter.post('/eliminarautomaticos',datacontroller.borrandoDatosAutomaticos)
 datarouter.post('/cambiopolines',datacontroller.CambioPolines)
 datarouter.get('/getlastpolinesreport',datacontroller.GetLastPolinesReport)
 datarouter.get('/pruebastream',datacontroller.GetPOlinesReportStream)
+datarouter.get('/pruebastreamDos',datacontroller.GetPOlinesReportStreamDos)
 
 
 //Status de Indicadores de Mantenimiento

@@ -644,27 +644,160 @@ const registerpolines = async (req, res) => {
 
 const getpolinesregisterdata = async (req, res) => {
     console.log("ejecutando request getpolinesregister");
-    const data = await polinesreportmodel.find({})
-    res.status(200).json({ data })
+    // const data = await polinesreportmodel.find({})
+    // res.status(200).json({ data })
+
+
+    try {
+        //const batchSize = 1000; // Tamaño del lote
+
+        // Establecemos el encabezado Content-Type como JSON
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('['); // Comenzamos el arreglo JSON
+
+        let isFirst = true; // Para determinar si es el primer elemento del arreglo
+
+        //let skip = 0;
+
+        const cursor = polinesreportmodel.find({})
+            .select('Tag Ubicacion Bastidor Posicion Fecha Estado Descripcion TipoReporte Usuario')
+            .lean()
+            .cursor(); // Obtener un stream de documentos
+
+        cursor.on('data', (item) => {
+            // Envía los datos al cliente línea por línea en formato JSON
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']'); // Finalizamos el arreglo JSON
+            res.end(); // Finalizamos la respuesta
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+
 }
 
 const GetPOlinesReportStream = async (req, res) => {
 
     console.log("ejecutando request getpolinesregister");
 
-    const stream = polinesreportmodel.find({}).stream();
-    stream.on('data', (data) => {
-        res.status(200).json({ data });
-    });
+    try {
+        let skip = 0;
+        const batchSize = 1000; // Tamaño del lote
 
-    stream.on('error', (err) => {
-        console.error('Error al leer los datos:', err);
+        let documentsProcessed = 0;
+
+        // Establecemos el encabezado Content-Type como JSON
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('['); // Comenzamos el arreglo JSON
+
+        let isFirst = true; // Para determinar si es el primer elemento del arreglo
+
+        while (true) {
+            const data = await polinesreportmodel.find({})
+                .select('Tag Ubicacion Bastidor Posicion Fecha Estado Descripcion TipoReporte Usuario')
+                .skip(skip)
+                .limit(batchSize)
+
+            if (data.length === 0) {
+                // Si no hay más documentos, salir del bucle
+                break;
+            }
+
+            // Envía los datos al cliente línea por línea en formato JSON
+            data.forEach(item => {
+                if (!isFirst) {
+                    res.write(','); // Agregamos una coma si no es el primer elemento
+                } else {
+                    isFirst = false;
+                }
+                // res.write(JSON.stringify({ data: item }));
+                res.write(JSON.stringify({ item }));
+                console.log(documentsProcessed);
+                documentsProcessed++;
+            });
+
+            // Si se ha procesado un lote completo, continuar con el siguiente
+            skip += batchSize;
+
+
+        }
+
+        res.write(']'); // Finalizamos el arreglo JSON
+        res.end(); // Finalizamos la respuesta
+
+        console.log(`Se procesaron ${documentsProcessed} documentos.`);
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
         res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
-    });
+    }
 
-    stream.on('end', () => {
-        console.log('Se completó el envío de datos.');
-    });
+}
+
+const GetPOlinesReportStreamDos = async (req, res) => {
+
+    console.log("ejecutando request getpolinesregister");
+
+    try {
+        //const batchSize = 1000; // Tamaño del lote
+
+        // Establecemos el encabezado Content-Type como JSON
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('['); // Comenzamos el arreglo JSON
+
+        let isFirst = true; // Para determinar si es el primer elemento del arreglo
+
+        //let skip = 0;
+
+        const cursor = polinesreportmodel.find({})
+            .select('Tag Ubicacion Bastidor Posicion Fecha Estado Descripcion TipoReporte Usuario')
+            .lean()
+            .cursor(); // Obtener un stream de documentos
+
+        cursor.on('data', (item) => {
+            // Envía los datos al cliente línea por línea en formato JSON
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']'); // Finalizamos el arreglo JSON
+            res.end(); // Finalizamos la respuesta
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
 }
 
 const pruebacronologica = (req, res) => {
@@ -692,6 +825,7 @@ const pruebacronologica = (req, res) => {
 }
 
 const prueba = async (req, res) => {
+
     try {
 
         const objetosCreados = [];
@@ -1273,6 +1407,7 @@ module.exports = {
     CambioPolines,
     GetLastPolinesReport,
     GetPOlinesReportStream,
+    GetPOlinesReportStreamDos,
 
     uploadexcelIndicadoresMantto,
     uploadexceliw37nbase,
