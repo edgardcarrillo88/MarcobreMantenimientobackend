@@ -1,6 +1,8 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
-const actualplantaschema = mongoose.Schema({
+const actualplantaschema = mongoose.Schema(
+  {
     Gerencia: String,
     Planta: String,
     Area: String,
@@ -9,7 +11,7 @@ const actualplantaschema = mongoose.Schema({
     CeCo: String,
     DescripcionCeCo: String,
     ClaseCosto: String,
-    DescripcionClaseCosto:String,
+    DescripcionClaseCosto: String,
     Responsable: String,
     Especialidad: String,
     TAG: String,
@@ -26,12 +28,19 @@ const actualplantaschema = mongoose.Schema({
     Fecha: String,
     Justificacion: String,
     CN: String,
-    deleted: { type: Boolean, default: false }
-},
-    {
-        timestamps: true
-    })
+    deleted: { type: Boolean, default: false },
+  },
+  {
+    timestamps: true,
+  }
+);
 
+actualplantaschema.plugin(mongoosePaginate);
 
-const actualplanta = mongoose.model('actualplanta', actualplantaschema, 'actualplanta')
-module.exports = actualplanta
+const actualplanta = mongoose.model(
+  "actualplanta",
+  actualplantaschema,
+  "actualplanta"
+);
+
+module.exports = actualplanta;

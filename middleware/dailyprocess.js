@@ -1,6 +1,6 @@
 const multer = require('multer');
 
-console.log("ejecutando middleware daily report");
+// console.log("ejecutando middleware daily report");
 
 const storage = multer.memoryStorage();
 

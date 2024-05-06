@@ -1,6 +1,6 @@
 const multer = require('multer');
 
-console.log("ejecutando middleware polines");
+// console.log("ejecutando middleware polines");
 
 const storage = multer.memoryStorage();
 

@@ -6,6 +6,7 @@ const app = express()
 const formcontroller = require('./routes/data')
 const filecontroller = require('./routes/files')
 const costcontroller = require('./routes/cost')
+const compression = require('compression');
 const path = require('path')
 const {pruebacronologica} = require('./controllers/dataprocess')
 
@@ -18,8 +19,10 @@ app.use(cors({
     origin: process.env.URL_PAGE,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   }));
-
+  
+app.use(compression());
 app.use(express.json())
+
 
 app.use('/api/v1/data',formcontroller)
 app.use('/api/v1/files',filecontroller) 

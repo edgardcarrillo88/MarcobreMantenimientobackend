@@ -1,6 +1,6 @@
 const multer = require('multer')
 
-console.log("ejecutando middleware form falla");
+// console.log("ejecutando middleware form falla");
 
 const storage = multer.memoryStorage();
 const upload = multer({

@@ -13,6 +13,7 @@ costrouter.post('/deleteactualplanta',costcontroller.deleteallActualplanta)
 costrouter.post('/deletebudgetplanta',costcontroller.deleteallBudgetplanta)
 
 costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
+costrouter.get('/getalldataactualplantaPowerBI',costcontroller.GetAllDataActualForPowerBI)
 costrouter.get('/getalldatabudgetplanta',costcontroller.getalldatabudgetplanta)
 
 costrouter.post('/updatesinglemonth',costcontroller.UpdateSingleMonth)
