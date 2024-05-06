@@ -295,9 +295,57 @@ const GetAllDataActualForPowerBI = async (req, res) => {
 
 const getalldatabudgetplanta = async (req, res) => {
   console.log("ejecutando get all data");
-  const data = await budgetPlantamodel.find({});
-  res.status(200).json(data);
+  // const data = await budgetPlantamodel.find({});
+  // res.status(200).json(data);
+
+  
+  try {
+
+    res.setHeader('Content-Type', 'application/json');
+
+    res.write('[');
+
+    let isFirst = true;
+
+    const cursor = budgetPlantamodel.find({ Mes: { $ne: 0 } })
+      .lean()
+      .cursor();
+
+    cursor.on('data', (item) => {
+      if (!isFirst) {
+        res.write(',');
+      } else {
+        isFirst = false;
+      }
+      res.write(JSON.stringify(item));
+      console.log("ejecutando");
+      // console.log(cursor);
+    });
+
+    cursor.on('end', () => {
+      res.write(']');
+      res.end();
+      console.log("Finalizado");
+    });
+
+    cursor.on('error', (error) => {
+      console.error('Error al leer los datos:', error);
+      res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    });
+
+  } catch (error) {
+    console.error('Error al leer los datos:', error);
+    res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+  }
+
+
 };
+
+
+
+
+
+
 
 const deleteallActualplanta = async (req, res) => {
   console.log("borrando todo");
