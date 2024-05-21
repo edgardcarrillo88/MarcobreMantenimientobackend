@@ -287,7 +287,22 @@ const GetAllDataActualForPowerBI = async (req, res) => {
 
 
 
+const borrandoDatosActualFiltrado = async (req, res) => {
 
+  console.log("Borrando datos filtrados");
+
+  console.log(parseFloat(req.body.Mes)); 
+
+  try {
+      await actualPlantamodel.deleteMany({ Mes: parseFloat(req.body.Mes), CategoriaActual:"Real" });
+      res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
+      console.log('Todos los datos filtrados del actual eliminados correctamente');
+  } catch (error) {
+      console.error('Error al eliminar documentos:', error);
+      res.status(500).send('Error al eliminar documentos');
+  }
+
+}
 
 
 
@@ -433,6 +448,7 @@ module.exports = {
   deleteallActualplanta,
   deleteallBudgetplanta,
   GetAllDataActualForPowerBI,
+  borrandoDatosActualFiltrado,
 
   UpdateSingleMonth,
   UpdateGroupMonth,

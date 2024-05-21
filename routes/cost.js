@@ -16,6 +16,8 @@ costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
 costrouter.get('/getalldataactualplantaPowerBI',costcontroller.GetAllDataActualForPowerBI)
 costrouter.get('/getalldatabudgetplanta',costcontroller.getalldatabudgetplanta)
 
+costrouter.post('/borrardatosactual',costcontroller.borrandoDatosActualFiltrado)
+
 costrouter.post('/updatesinglemonth',costcontroller.UpdateSingleMonth)
 costrouter.post('/updategroupmonth',costcontroller.UpdateGroupMonth)
 
