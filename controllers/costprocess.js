@@ -294,7 +294,10 @@ const borrandoDatosActualFiltrado = async (req, res) => {
   console.log(parseFloat(req.body.Mes)); 
 
   try {
-      await actualPlantamodel.deleteMany({ Mes: parseFloat(req.body.Mes), CategoriaActual:"Real" });
+      await actualPlantamodel.deleteMany({ 
+        Mes: parseFloat(req.body.Mes),
+        CategoriaActual:{ $in: ["Real", "ProvAnt"] } 
+      });
       res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
       console.log('Todos los datos filtrados del actual eliminados correctamente');
   } catch (error) {
