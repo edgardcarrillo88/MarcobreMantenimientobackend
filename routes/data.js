@@ -3,8 +3,14 @@ const datarouter = express.Router()
 const datacontroller = require('../controllers/dataprocess');
 const controllerprueba = require('../controllers/message');
 const upload = require('../middleware/fileprocess');
+const UploadExcel =  require('../middleware/excelprocess')
 const uploadMiddleware = require('../middleware/dailyprocess');
 const uploadMiddlewarePolines = require('../middleware/polinesprocess');
+
+
+//Data Planta
+datarouter.post('/cargaequiposplanta',UploadExcel.single('file'),datacontroller.Temporal)
+datarouter.get('/getdataequiposplanta',datacontroller.GetEquiposPlanta)
 
 
 //Reporte rápido de Falla
