@@ -9,6 +9,7 @@ const taskmodel = require('../models/task')
 const updatemodel = require('../models/updates')
 const Induccionmodel = require('../models/induccionPdP')
 const PersonalContratistamodel = require('../models/personalcontratistas')
+const EvaluacionPdPmodel = require('../models/evaluacionpdp')
 
 //Modelos Reporte de Falla
 const failformmodel = require('../models/failform')
@@ -381,6 +382,14 @@ const DeleteActivities = (req, res) => {
 }
 
 
+
+
+
+
+
+
+
+
 //Reporte  de Falla
 const registerform = async (req, res) => {
 
@@ -531,6 +540,7 @@ const getsingledata = async (req, res) => {
     res.status(200).json(data)
 
 }
+
 
 
 //Reporte de Polines
@@ -1376,46 +1386,86 @@ const ObtenerRegistroContratistas = async (req, res) => {
 
 }
 
+const EvaluacionPdP = async (req, res) => {
+    console.log("Guardando respuesta de evaluación");
+    console.log(req.body);
+    const DNI = req.body.answers.DNI
+    const apiUrl = `${process.env.API_URL}${DNI}`
+
+    try {
+
+        const response = await axios.get(apiUrl, {
+            headers: {
+                Authorization: `Bearer ${process.env.TOKEN_DNI}`
+            }
+        })
+        console.log(response.data);
+
+
+        if (response.data.success) {
+            req.body.answers.Nombre = `${response.data.nombres} ${response.data.apellidoPaterno} ${response.data.apellidoMaterno}`;
+        } else {
+            console.log("Error");
+            return res.status(400).json({ message: "No se encontró información válida para el DNI proporcionado" });
+        }
+
+        const data = new EvaluacionPdPmodel({
+            answer: req.body.answers,
+            Nota: req.body.score,
+        });
+
+
+        await data.save();
+        res.status(200).json({ message: "Datos guardados de manera satisfactoria", Informacion: req.body.answers.Nombre })
+        console.log("Correcto");
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "error al guardar la información" })
+    }
+
+
+}
+
 
 
 
 
 
 //Reporte de andamios
-const Temporal = async (req,res) =>{
+const Temporal = async (req, res) => {
 
-console.log("holi boli");
-const bufferData = req.file.buffer;
-const workbook = xlsx.read(bufferData, { type: "buffer" });
-const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-const excelData = xlsx.utils.sheet_to_json(worksheet);
+    console.log("holi boli");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
 
-const dataPromises = excelData.map(async (rowData) => {
+    const dataPromises = excelData.map(async (rowData) => {
 
-    try {
+        try {
 
-        console.log("cargando datos");
-        const data = new EquiposPlantareportmodel(rowData);
-        await data.save();
+            console.log("cargando datos");
+            const data = new EquiposPlantareportmodel(rowData);
+            await data.save();
 
-    } catch (error) {
-        console.error('Error al guardar el dato:', error);
-    }
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
 
-});
-Promise.all(dataPromises)
-    .then(() => {
-        console.log('Todos los datos guardados en la base de datos');
-        res.status(200).json({ message: 'Datos guardados en la base de datos' });
-    })
-    .catch((error) => {
-        console.error('Error al guardar los datos:', error);
-        res.status(500).json({ error: 'Error al guardar los datos' });
-    })
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
 
 }
 
-const GetEquiposPlanta = async (refq,res) => {
+const GetEquiposPlanta = async (refq, res) => {
     console.log("ejecutando get all data de Equipos Planta");
     const data = await EquiposPlantareportmodel.find({})
     console.log(data);
@@ -1482,5 +1532,7 @@ module.exports = {
 
     pruebacronologica,
     prueba,
-    borrandoDatosAutomaticos
+    borrandoDatosAutomaticos,
+
+    EvaluacionPdP
 }

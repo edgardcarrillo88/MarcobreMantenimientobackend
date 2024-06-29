@@ -43,6 +43,8 @@ datarouter.get('/getcontratistas',datacontroller.ObtenerRegistroContratistas)
 datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
 datarouter.post('/updatevalidation',datacontroller.UpdateValidation)
 
+datarouter.post('/evaluacionpdp',datacontroller.EvaluacionPdP)
+
 
 //Registro de Polines
 datarouter.post('/loaddatatemp',datacontroller.uploadexcelTemp)

@@ -21,4 +21,6 @@ costrouter.post('/borrardatosactual',costcontroller.borrandoDatosActualFiltrado)
 costrouter.post('/updatesinglemonth',costcontroller.UpdateSingleMonth)
 costrouter.post('/updategroupmonth',costcontroller.UpdateGroupMonth)
 
+costrouter.post('/temp',costcontroller.Temporal)
+
 module.exports = costrouter

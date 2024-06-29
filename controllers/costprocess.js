@@ -97,6 +97,7 @@ const deleteallBudget = async (req, res) => {
     });
 };
 
+
 //Mantto Planta
 const getalldataactualplanta = async (req, res) => {
 
@@ -285,38 +286,32 @@ const GetAllDataActualForPowerBI = async (req, res) => {
 
 }
 
-
-
 const borrandoDatosActualFiltrado = async (req, res) => {
 
   console.log("Borrando datos filtrados");
 
-  console.log(parseFloat(req.body.Mes)); 
+  console.log(parseFloat(req.body.Mes));
 
   try {
-      await actualPlantamodel.deleteMany({ 
-        Mes: parseFloat(req.body.Mes),
-        CategoriaActual:{ $in: ["Real", "ProvAnt"] } 
-      });
-      res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
-      console.log('Todos los datos filtrados del actual eliminados correctamente');
+    await actualPlantamodel.deleteMany({
+      Mes: parseFloat(req.body.Mes),
+      CategoriaActual: { $in: ["Real", "ProvAnt"] }
+    });
+    res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
+    console.log('Todos los datos filtrados del actual eliminados correctamente');
   } catch (error) {
-      console.error('Error al eliminar documentos:', error);
-      res.status(500).send('Error al eliminar documentos');
+    console.error('Error al eliminar documentos:', error);
+    res.status(500).send('Error al eliminar documentos');
   }
 
 }
-
-
-
-
 
 const getalldatabudgetplanta = async (req, res) => {
   console.log("ejecutando get all data");
   // const data = await budgetPlantamodel.find({});
   // res.status(200).json(data);
 
-  
+
   try {
 
     res.setHeader('Content-Type', 'application/json');
@@ -358,12 +353,6 @@ const getalldatabudgetplanta = async (req, res) => {
 
 
 };
-
-
-
-
-
-
 
 const deleteallActualplanta = async (req, res) => {
   console.log("borrando todo");
@@ -441,6 +430,38 @@ const UpdateGroupMonth = async (req, res) => {
     });
 };
 
+
+
+const Temporal = async (req, res) => {
+
+  console.log("Borrando datos filtrados");
+  console.log(parseFloat(req.query.Mes));
+  mesValue = parseFloat(req.query.Mes)
+
+  //   try {
+  //       await actualPlantamodel.deleteMany({ 
+  //         Mes: parseFloat(req.body.Mes)
+  //       });
+  //       res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
+  //       console.log('Todos los datos filtrados del actual eliminados correctamente');
+  //   } catch (error) {
+  //       console.error('Error al eliminar documentos:', error);
+  //       res.status(500).send('Error al eliminar documentos');
+  //   }
+
+  try {
+    await actualPlantamodel.deleteMany({
+      Mes: { $gte: mesValue }
+    });
+    console.log("Ok");
+    res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
+
+  } catch (error) {
+    console.log(error);
+  }
+
+}
+
 module.exports = {
   uploadexcel,
   getalldataactual,
@@ -456,4 +477,6 @@ module.exports = {
 
   UpdateSingleMonth,
   UpdateGroupMonth,
+
+  Temporal,
 };
