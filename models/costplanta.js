@@ -3,6 +3,7 @@ const mongoosePaginate = require("mongoose-paginate-v2");
 
 const actualplantaschema = mongoose.Schema(
   {
+    IdPpto: String,
     Gerencia: String,
     Planta: String,
     Area: String,

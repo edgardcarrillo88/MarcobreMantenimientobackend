@@ -438,21 +438,22 @@ const Temporal = async (req, res) => {
   console.log(parseFloat(req.query.Mes));
   mesValue = parseFloat(req.query.Mes)
 
-  //   try {
-  //       await actualPlantamodel.deleteMany({ 
-  //         Mes: parseFloat(req.body.Mes)
-  //       });
-  //       res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
-  //       console.log('Todos los datos filtrados del actual eliminados correctamente');
-  //   } catch (error) {
-  //       console.error('Error al eliminar documentos:', error);
-  //       res.status(500).send('Error al eliminar documentos');
-  //   }
 
   try {
     await actualPlantamodel.deleteMany({
-      Mes: { $gte: mesValue }
+      Mes: { $gte: mesValue },
+      Especialidad: "Parada de Planta"
     });
+
+    // const data = await actualPlantamodel.find({
+    //   Mes: { $gte: mesValue },
+    //   Especialidad: "Parada de Planta"
+    // });
+
+    // console.log(data);
+    // console.log(data.length);
+
+
     console.log("Ok");
     res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
 

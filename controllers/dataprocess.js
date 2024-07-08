@@ -381,7 +381,30 @@ const DeleteActivities = (req, res) => {
         })
 }
 
+const TemporalParadaDePlanta = async (req, res) => {
 
+    console.log("Borrando datos filtrados");
+
+
+    try {
+        await taskmodel.deleteMany({
+            BloqueRC: "Cambio Liners"
+        });
+
+        // const data = await taskmodel.find({
+        //     BloqueRC: "Cambio Liners"
+        // })
+        // console.log(data.length);
+
+
+        console.log("Ok");
+        res.status(200).send('Datos eliminados');
+
+    } catch (error) {
+        console.log(error);
+    }
+
+}
 
 
 
@@ -1229,6 +1252,7 @@ const deleteallIW37nBase = async (req, res) => {
     iw37nbasemodel.deleteMany({})
         .then(() => {
             console.log('Todos los datos de Iw37n Base eliminados correctamente');
+            res.status(200).json({ Message: "Ok" })
         })
         .catch((error) => {
             console.error('Error al eliminar documentos:', error);
@@ -1298,8 +1322,52 @@ const getalldataIW37nReport = async (req, res) => {
 const getalldataIW39Report = async (req, res) => {
 
     console.log("ejecutando get all data de IW39Report");
-    const data = await iw39reportmodel.find({})
-    res.status(200).json(data)
+    // const data = await iw39reportmodel.find({})
+    // res.status(200).json(data)
+
+
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw39reportmodel.find({})
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+            console.log("ejecutando");
+            // console.log(cursor);
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+
+
 
 }
 
@@ -1406,7 +1474,7 @@ const EvaluacionPdP = async (req, res) => {
             req.body.answers.Nombre = `${response.data.nombres} ${response.data.apellidoPaterno} ${response.data.apellidoMaterno}`;
         } else {
             console.log("Error");
-            return res.status(400).json({ message: "No se encontró información válida para el DNI proporcionado" });
+            //return res.status(400).json({ message: "No se encontró información válida para el DNI proporcionado" });
         }
 
         const data = new EvaluacionPdPmodel({
@@ -1424,6 +1492,17 @@ const EvaluacionPdP = async (req, res) => {
     }
 
 
+}
+
+const ObtenerDatosEvaluacionPdP = async (req, res) => {
+    console.log("obteniendo datos de evaluaciones");
+
+    try {
+        const response = await EvaluacionPdPmodel.find({})
+        res.status(200).json({ Message: "Todo Oki doki", data: response })
+    } catch (error) {
+        res.status(500).json({ Message: error })
+    }
 }
 
 
@@ -1534,5 +1613,7 @@ module.exports = {
     prueba,
     borrandoDatosAutomaticos,
 
-    EvaluacionPdP
+    EvaluacionPdP,
+    TemporalParadaDePlanta,
+    ObtenerDatosEvaluacionPdP
 }

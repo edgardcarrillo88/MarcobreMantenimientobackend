@@ -44,6 +44,9 @@ datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
 datarouter.post('/updatevalidation',datacontroller.UpdateValidation)
 
 datarouter.post('/evaluacionpdp',datacontroller.EvaluacionPdP)
+datarouter.get('/obtenerdatosevaluacion',datacontroller.ObtenerDatosEvaluacionPdP)
+datarouter.post('/temporalparadadeplanta',datacontroller.TemporalParadaDePlanta)
+
 
 
 //Registro de Polines
