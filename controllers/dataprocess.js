@@ -24,6 +24,7 @@ const baseindicadoresmodel = require('../models/baseindicadores')
 const iw37nbasemodel = require('../models/iw37nbase')
 const iw37nreportmodel = require('../models/iw37nreport')
 const iw39reportmodel = require('../models/iw39report')
+const iw29reportmodel = require('../models/iw29report')
 const RosterModel = require('../models/roster')
 
 //Modelos GestionAndamios
@@ -567,6 +568,7 @@ const getsingledata = async (req, res) => {
 
 
 //Reporte de Polines
+
 const uploadexcelTemp = (req, res) => {
 
     console.log("ejecutando carga de datos");
@@ -574,8 +576,6 @@ const uploadexcelTemp = (req, res) => {
     const workbook = xlsx.read(bufferData, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
-
-
 
     const dataPromises = excelData.map(async (rowData) => {
 
@@ -1107,11 +1107,24 @@ const uploadexceliw37nbase = (req, res) => {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
+    const hoy = new Date();
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 1;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
+
     const dataPromises = excelData.map(async (rowData) => {
 
         try {
 
             console.log("cargando datos");
+            rowData.Semana = numeroDeSemana;
             const data = new iw37nbasemodel(rowData);
             await data.save();
 
@@ -1139,13 +1152,24 @@ const uploadexceliw37nreport = (req, res) => {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
+    const hoy = new Date();
 
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 1;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
 
     const dataPromises = excelData.map(async (rowData) => {
 
         try {
 
             console.log("cargando datos");
+            rowData.Semana = numeroDeSemana;
             const data = new iw37nreportmodel(rowData);
             await data.save();
 
@@ -1173,11 +1197,24 @@ const uploadexceliw39report = (req, res) => {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const excelData = xlsx.utils.sheet_to_json(worksheet);
 
+    const hoy = new Date();
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 1;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
+
     const dataPromises = excelData.map(async (rowData) => {
 
         try {
 
             console.log("cargando datos");
+            rowData.Semana = numeroDeSemana;
             const data = new iw39reportmodel(rowData);
             await data.save();
 
@@ -1197,7 +1234,49 @@ const uploadexceliw39report = (req, res) => {
         })
 }
 
+const uploadexceliw29report = (req, res) => {
 
+    console.log("ejecutando carga de datos de iw29report");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const hoy = new Date();
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 1;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+            console.log("cargando datos");
+            rowData.Semana = numeroDeSemana;
+            const data = new iw29reportmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos de iw29report guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
 
 const uploadexcelroster = async (req, res) => {
 
@@ -1370,6 +1449,43 @@ const getalldataIW39Report = async (req, res) => {
 
 
 }
+
+const updatetempReportIndicadores = async (req, res) => {
+    console.log("Actualización de objetos");
+
+    // const iw37nbasemodel = require('../models/iw37nbase')
+    // const iw37nreportmodel = require('../models/iw37nreport')
+    // const iw39reportmodel = require('../models/iw39report')
+
+
+    const hoy = new Date();
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 2;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
+
+    try {
+        const data = await iw39reportmodel.updateMany(
+            {},
+            { $set: { Semana: numeroDeSemana } }
+        );
+        res.status(200).json({ Message: "Oki doki de indicadores", semana: numeroDeSemana })
+        console.log("Objetos actualizados");
+    } catch (error) {
+        res.status(500).json({ Message: "Error al actualizar los indicadores", error: error.message })
+    }
+}
+
+
+
+
+
 
 
 //Inducción Parada de Planta
@@ -1596,6 +1712,7 @@ module.exports = {
     uploadexceliw37nbase,
     uploadexceliw37nreport,
     uploadexceliw39report,
+    uploadexceliw29report,
     uploadexcelroster,
 
     deleteallIndicadores,
@@ -1615,5 +1732,6 @@ module.exports = {
 
     EvaluacionPdP,
     TemporalParadaDePlanta,
-    ObtenerDatosEvaluacionPdP
+    ObtenerDatosEvaluacionPdP,
+    updatetempReportIndicadores
 }

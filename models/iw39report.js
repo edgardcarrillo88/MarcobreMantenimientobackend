@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const iw39reportschema = mongoose.Schema({
     Orden: String,
     "Status del sistema": String,
+    Semana: String,
     deleted: { type: Boolean, default: false }
 },
     {

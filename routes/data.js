@@ -66,6 +66,7 @@ datarouter.get('/pruebastreamDos',datacontroller.GetPOlinesReportStreamDos)
 
 //Status de Indicadores de Mantenimiento
 datarouter.post('/deleteindicadores',datacontroller.deleteallIndicadores)
+
 datarouter.post('/deleteIW37nBase',datacontroller.deleteallIW37nBase)
 datarouter.post('/deleteindIW37Report',datacontroller.deleteallIw37nreport)
 datarouter.post('/deleteindIW39Report',datacontroller.deleteallIW39)
@@ -75,6 +76,8 @@ datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
 datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
 datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)
+
+datarouter.post('/temporalactualizacionsemanasindicadores',datacontroller.updatetempReportIndicadores)
 
 
 //Envío de mensajes

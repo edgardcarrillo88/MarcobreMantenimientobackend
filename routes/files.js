@@ -13,6 +13,7 @@ filesrouter.post('/loadindicadores',Upload.single('file'),filecontroller.uploade
 filesrouter.post('/loadiw37nbase',Upload.single('file'),filecontroller.uploadexceliw37nbase)
 filesrouter.post('/loadiw37nreport',Upload.single('file'),filecontroller.uploadexceliw37nreport)
 filesrouter.post('/loadiw39report',Upload.single('file'),filecontroller.uploadexceliw39report)
+filesrouter.post('/loadiw29report',Upload.single('file'),filecontroller.uploadexceliw29report)
 filesrouter.post('/loadroster',Upload.single('file'),filecontroller.uploadexcelroster)
 
 //Parada de planta

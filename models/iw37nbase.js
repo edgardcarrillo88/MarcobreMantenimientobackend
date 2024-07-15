@@ -20,6 +20,7 @@ const iw37nschema = mongoose.Schema({
     "Stat.sist.": String,
     "Ubic.técn.": String,
     "Trbjo real": String,
+    Semana: String,
     deleted: { type: Boolean, default: false }
 },
     {
