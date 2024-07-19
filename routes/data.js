@@ -23,6 +23,15 @@ datarouter.get('/getsingledata',datacontroller.getsingledata)
 datarouter.post('/dailyreport',uploadMiddleware,datacontroller.dailyreport)
 datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
+//Reporte de andamios
+
+
+
+//Reporte Backlog
+datarouter.post('/crearpreaviso',datacontroller.CrearPreAviso)
+
+
+
 
 //Parada de Planta
 datarouter.get('/schedule',datacontroller.getscheduledata)
@@ -56,7 +65,6 @@ datarouter.post('/deletepolines',datacontroller.deleteallpolines)
 datarouter.post('/polinesreport',uploadMiddlewarePolines,datacontroller.registerpolines)
 datarouter.post('/deletereportpolines',datacontroller.DeletePolinesReport)
 datarouter.get('/getpolinesreport',datacontroller.getpolinesregisterdata)
-// datarouter.post('/prueba',datacontroller.prueba)
 datarouter.post('/eliminarautomaticos',datacontroller.borrandoDatosAutomaticos)
 datarouter.post('/cambiopolines',datacontroller.CambioPolines)
 datarouter.get('/getlastpolinesreport',datacontroller.GetLastPolinesReport)

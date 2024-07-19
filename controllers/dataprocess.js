@@ -30,6 +30,9 @@ const RosterModel = require('../models/roster')
 //Modelos GestionAndamios
 const EquiposPlantareportmodel = require('../models/EquiposPlanta')
 
+//Modelos Backlog
+const Backlogreportmodel = require('../models/BacklogReport')
+
 
 
 //Parada de Planta
@@ -1622,7 +1625,25 @@ const ObtenerDatosEvaluacionPdP = async (req, res) => {
 }
 
 
+//Reporte Backlog
 
+const CrearPreAviso = async (req, res) => {
+    console.log("Creando pre aviso");
+    console.log(req.body);
+
+    try {
+        const data = new Backlogreportmodel(
+            req.body
+        );
+
+        await data.save();
+        console.log("Todo OK");
+        res.status(200).json({ message: "Todo Ok" })
+    } catch (error) {
+        console.log("Error");
+        res.status(500).json({ message: "Nada Ok" })
+    }
+}
 
 
 
@@ -1663,7 +1684,6 @@ const Temporal = async (req, res) => {
 const GetEquiposPlanta = async (refq, res) => {
     console.log("ejecutando get all data de Equipos Planta");
     const data = await EquiposPlantareportmodel.find({})
-    console.log(data);
     res.status(200).json(data)
 }
 
@@ -1676,6 +1696,8 @@ module.exports = {
     getalldata,
     getsingledata,
     getfiltersdata,
+
+    CrearPreAviso,
 
     getscheduledata,
     deleteschedule,
