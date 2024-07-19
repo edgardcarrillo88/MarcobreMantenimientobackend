@@ -1428,8 +1428,6 @@ const getalldataIW39Report = async (req, res) => {
                 isFirst = false;
             }
             res.write(JSON.stringify(item));
-            console.log("ejecutando");
-            // console.log(cursor);
         });
 
         cursor.on('end', () => {

@@ -263,7 +263,6 @@ const GetAllDataActualForPowerBI = async (req, res) => {
         isFirst = false;
       }
       res.write(JSON.stringify(item));
-      console.log("ejecutando");
       // console.log(cursor);
     });
 
@@ -331,7 +330,6 @@ const getalldatabudgetplanta = async (req, res) => {
         isFirst = false;
       }
       res.write(JSON.stringify(item));
-      console.log("ejecutando");
       // console.log(cursor);
     });
 
