@@ -29,6 +29,9 @@ datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
 //Reporte Backlog
 datarouter.post('/crearpreaviso',datacontroller.CrearPreAviso)
+datarouter.post('/uploadimagebacklog',UploadExcel.single('file'),datacontroller.GuardarImagenPreAviso)
+
+
 
 
 

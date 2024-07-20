@@ -3,6 +3,9 @@ const xlsx = require('xlsx');
 const schedule = require('node-schedule');
 const mongoose = require('mongoose')
 const axios = require('axios')
+const { S3, PutObjectCommand } = require('@aws-sdk/client-s3')
+const { v4: uuidv4  } = require('uuid')
+
 
 //Modelos Parada de Planta
 const taskmodel = require('../models/task')
@@ -414,9 +417,6 @@ const TemporalParadaDePlanta = async (req, res) => {
 
 
 
-
-
-
 //Reporte  de Falla
 const registerform = async (req, res) => {
 
@@ -567,6 +567,7 @@ const getsingledata = async (req, res) => {
     res.status(200).json(data)
 
 }
+
 
 
 
@@ -1066,6 +1067,8 @@ const GetLastPolinesReport = async (req, res) => {
 }
 
 
+
+
 //Reporte de Indicadores de Mantenimiento
 const uploadexcelIndicadoresMantto = (req, res) => {
 
@@ -1488,7 +1491,6 @@ const updatetempReportIndicadores = async (req, res) => {
 
 
 
-
 //Inducción Parada de Planta
 const RegistroInduccion = async (req, res) => {
 
@@ -1643,6 +1645,47 @@ const CrearPreAviso = async (req, res) => {
     }
 }
 
+const GuardarImagenPreAviso = async (req, res) => {
+
+    try {
+        const file = req.file;
+        console.log(file)
+
+        const endpoint = 'https://nyc3.digitaloceanspaces.com'
+
+
+        const s3Client = new S3({
+            forcePathStyle: false,
+            endpoint: endpoint,
+            region: 'us-east-1',
+            credentials: {
+                accessKeyId: process.env.DIGITAL_OCEAN_ACCESS_KEY,
+                secretAccessKey: process.env.DIGITAL_OCEAN_SECRET_KEY
+            }
+        })
+
+        const fileextension = file.originalname.split(".").pop()
+        console.log(`${uuidv4()}.${fileextension}`);
+
+        const bucketparams = {
+            Bucket: 'mantenimientomarcobre',
+            Key: `${uuidv4()}.${fileextension}`,
+            Body: file.buffer,
+            ACL: 'public-read',
+        }
+
+        const result = await s3Client.send(new PutObjectCommand(bucketparams))
+
+        res.status(200).json({ Message: "Oki doki" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ Message: error })
+    }
+
+}
+
+
+
 
 
 //Reporte de andamios
@@ -1696,6 +1739,7 @@ module.exports = {
     getfiltersdata,
 
     CrearPreAviso,
+    GuardarImagenPreAviso,
 
     getscheduledata,
     deleteschedule,
