@@ -29,6 +29,8 @@ const actualplantaschema = mongoose.Schema(
     Fecha: String,
     Justificacion: String,
     CN: String,
+    MesBase:Number,
+    MontoBase:Number,
     deleted: { type: Boolean, default: false },
   },
   {

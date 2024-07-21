@@ -438,19 +438,11 @@ const Temporal = async (req, res) => {
 
 
   try {
+
     await actualPlantamodel.deleteMany({
       Mes: { $gte: mesValue },
-      Especialidad: "Parada de Planta"
+      // Especialidad: "Parada de Planta"
     });
-
-    // const data = await actualPlantamodel.find({
-    //   Mes: { $gte: mesValue },
-    //   Especialidad: "Parada de Planta"
-    // });
-
-    // console.log(data);
-    // console.log(data.length);
-
 
     console.log("Ok");
     res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
