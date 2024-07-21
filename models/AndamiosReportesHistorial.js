@@ -10,6 +10,7 @@ const AndamiosReporteHistorialschema = mongoose.Schema({
     Status:String,
     Usuario: String,
     CantidadCuerpos: Number,
+    idAndamio: String,
 
     deleted: { type: Boolean, default: false }
 },

@@ -4,7 +4,7 @@ const schedule = require('node-schedule');
 const mongoose = require('mongoose')
 const axios = require('axios')
 const { S3, PutObjectCommand } = require('@aws-sdk/client-s3')
-const { v4: uuidv4  } = require('uuid')
+const { v4: uuidv4 } = require('uuid')
 
 
 //Modelos Parada de Planta
@@ -32,9 +32,12 @@ const RosterModel = require('../models/roster')
 
 //Modelos GestionAndamios
 const EquiposPlantareportmodel = require('../models/EquiposPlanta')
+const AndamiosReporte = require('../models/AndamiosReportes')
+const AndamiosReporteHistorial = require('../models/AndamiosReportesHistorial')
 
 //Modelos Backlog
-const Backlogreportmodel = require('../models/BacklogReport')
+const Backlogreportmodel = require('../models/BacklogReport');
+const update = require('../models/updates');
 
 
 
@@ -1728,6 +1731,115 @@ const GetEquiposPlanta = async (refq, res) => {
     res.status(200).json(data)
 }
 
+const getalldataandamios = async (req, res) => {
+    console.log("ejecutando Get all data andamios");
+
+    try {
+        const data = await AndamiosReporte.find({})
+        res.status(200).json(data)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ Message: error })
+    }
+}
+
+const RegistrarAndamios = async (req, res) => {
+    console.log("Ejecutando guardar reporte andamios");
+
+    console.log(req.body);
+    try {
+
+        const data = new AndamiosReporte(
+            req.body
+        );
+
+        const datahistorial = new AndamiosReporteHistorial(
+            req.body
+        );
+
+        await data.save();
+        await datahistorial.save();
+        res.status(200).json({ Message: "todo ok" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ Message: "Error al guardar" })
+    }
+
+}
+
+const GetSingleDataAndamios = async (req, res) => {
+    console.log("ejecutando get single datos andamios");
+
+    try {
+        const _id = req.query.id
+        console.log(_id);
+        const data = await AndamiosReporte.find({
+            _id
+        })
+        console.log(data);
+        const { __v, deleted, createdAt, updatedAt, ...rest } = data[0]._doc;
+        console.log("----");
+        console.log(rest);
+        res.status(200).json({ data: rest, update: "SI" })
+    } catch (error) {
+        const data = []
+        console.log("Respondiendo con error");
+        res.status(200).json({ data, update: "NO" })
+    }
+}
+
+const ActualizarAndamios = async (req, res) => {
+    console.log("Ejecutando actualización de reporte andamios");
+
+    console.log(req.body);
+
+    const {
+        Planta,
+        Area,
+        TAG,
+        Responsable,
+        Fecha,
+        Detalle,
+        Status,
+        CantidadCuerpos,
+         _id 
+        } = req.body
+
+    console.log(_id);
+
+    try {
+
+        const data = await AndamiosReporte.findByIdAndUpdate(_id, {
+            $set: {
+                Planta,
+                Area,
+                TAG,
+                Responsable,
+                Fecha,
+                Detalle,
+                Status,
+                CantidadCuerpos,
+            }
+        }, { new: true })
+
+        const { _id: ignored, ...rest } = req.body;
+
+        const datahistorial = new AndamiosReporteHistorial({
+            ...rest,
+            idAndamio:_id,
+            updatedAt: new Date()
+        });
+
+        await datahistorial.save();
+        res.status(200).json({ Message: "todo ok" })
+
+    } catch (error) {
+
+        console.log(error);
+        res.status(500).json({ Message: "Error al guardar" })
+
+    }
+}
 
 module.exports = {
     Temporal,
@@ -1740,6 +1852,11 @@ module.exports = {
 
     CrearPreAviso,
     GuardarImagenPreAviso,
+
+    getalldataandamios,
+    RegistrarAndamios,
+    GetSingleDataAndamios,
+    ActualizarAndamios,
 
     getscheduledata,
     deleteschedule,

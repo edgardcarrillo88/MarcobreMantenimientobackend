@@ -24,6 +24,11 @@ datarouter.post('/dailyreport',uploadMiddleware,datacontroller.dailyreport)
 datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
 //Reporte de andamios
+datarouter.post('/guardardatosandamios',datacontroller.RegistrarAndamios)
+datarouter.post('/actualizardatosandamios',datacontroller.ActualizarAndamios)
+datarouter.get('/getalldataandamios',datacontroller.getalldataandamios)
+datarouter.get('/getsingledataandamios',datacontroller.GetSingleDataAndamios)
+
 
 
 
