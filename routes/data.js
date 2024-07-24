@@ -31,12 +31,15 @@ datarouter.get('/getsingledataandamios',datacontroller.GetSingleDataAndamios)
 
 
 
-
 //Reporte Backlog
 datarouter.post('/crearpreaviso',datacontroller.CrearPreAviso)
 datarouter.post('/uploadimagebacklog',UploadExcel.single('file'),datacontroller.GuardarImagenPreAviso)
 
 
+//Gestión de NCR
+datarouter.post('/crearsolicitudncr',datacontroller.CrearNCR)
+datarouter.get('/getalldatancr',datacontroller.GetAllDataNCR)
+datarouter.get('/getsingledatancr',datacontroller.GetSingleDataNCR)
 
 
 
@@ -92,8 +95,11 @@ datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
 datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
 datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)
+datarouter.get('/getalldataIW29Report',datacontroller.getalldataIW29Report)
 
 datarouter.post('/temporalactualizacionsemanasindicadores',datacontroller.updatetempReportIndicadores)
+datarouter.post('/temporaleleiminarsemana',datacontroller.TemporalEliminarSemana)
+
 
 
 //Envío de mensajes

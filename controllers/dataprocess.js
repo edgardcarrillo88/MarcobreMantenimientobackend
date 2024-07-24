@@ -39,6 +39,9 @@ const AndamiosReporteHistorial = require('../models/AndamiosReportesHistorial')
 const Backlogreportmodel = require('../models/BacklogReport');
 const update = require('../models/updates');
 
+//Modelos NCR
+NCRReportModel = require('../models/NCR')
+
 
 
 //Parada de Planta
@@ -1457,6 +1460,56 @@ const getalldataIW39Report = async (req, res) => {
 
 }
 
+const getalldataIW29Report = async (req, res) => {
+
+    console.log("ejecutando get all data de IW29Report");
+    // const data = await iw39reportmodel.find({})
+    // res.status(200).json(data)
+
+
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw29reportmodel.find({})
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+
+
+
+}
+
 const updatetempReportIndicadores = async (req, res) => {
     console.log("Actualización de objetos");
 
@@ -1490,6 +1543,27 @@ const updatetempReportIndicadores = async (req, res) => {
 }
 
 
+const TemporalEliminarSemana = async (req, res) => {
+
+    console.log("Borrando datos filtrados");
+    console.log(req.query.Mes);
+  
+  
+    try {
+  
+      await iw39reportmodel.deleteMany({
+        Semana: { $gte: req.query.Mes },
+        // Especialidad: "Parada de Planta"
+      });
+  
+      console.log("Ok");
+      res.status(200).send('Todos los datos iw39 eliminados correctamente');
+  
+    } catch (error) {
+      console.log(error);
+    }
+  
+  }
 
 
 
@@ -1705,7 +1779,8 @@ const Temporal = async (req, res) => {
         try {
 
             console.log("cargando datos");
-            const data = new EquiposPlantareportmodel(rowData);
+            // const data = new EquiposPlantareportmodel(rowData);
+            const data = new NCRReportModel(rowData)
             await data.save();
 
         } catch (error) {
@@ -1802,8 +1877,8 @@ const ActualizarAndamios = async (req, res) => {
         Detalle,
         Status,
         CantidadCuerpos,
-         _id 
-        } = req.body
+        _id
+    } = req.body
 
     console.log(_id);
 
@@ -1826,7 +1901,7 @@ const ActualizarAndamios = async (req, res) => {
 
         const datahistorial = new AndamiosReporteHistorial({
             ...rest,
-            idAndamio:_id,
+            idAndamio: _id,
             updatedAt: new Date()
         });
 
@@ -1838,6 +1913,49 @@ const ActualizarAndamios = async (req, res) => {
         console.log(error);
         res.status(500).json({ Message: "Error al guardar" })
 
+    }
+}
+
+
+//Gestion NCR
+
+const GetSingleDataNCR = async (req, res) => {
+    console.log("Ejecutando Get single Data NCR");
+    try {
+        const _id = req.query.id
+        console.log(_id);
+        const data = await NCRReportModel.find({
+            _id
+        })
+        console.log(data);
+        const { __v, deleted, createdAt, updatedAt, ...rest } = data[0]._doc;
+        console.log("----");
+        console.log(rest);
+        res.status(200).json({ data: rest, update: "SI" })
+    } catch (error) {
+        res.status(500).json({ Message: error })
+    }
+}
+
+
+const CrearNCR = async (req, res) => {
+    console.log("Ejecutando crear NCR");
+    try {
+        res.status(200).json({ Message: "Todo ok" })
+    } catch (error) {
+        res.status(500).json({ Message: error })
+    }
+}
+
+
+const GetAllDataNCR = async (req, res) => {
+    console.log("Ejecutando Get all Data NCR");
+    try {
+        const data = await NCRReportModel.find({})
+        console.log(data);
+        res.status(200).json({ Message: "Todo ok", data })
+    } catch (error) {
+        res.status(500).json({ Message: error })
     }
 }
 
@@ -1857,6 +1975,10 @@ module.exports = {
     RegistrarAndamios,
     GetSingleDataAndamios,
     ActualizarAndamios,
+
+    CrearNCR,
+    GetAllDataNCR,
+    GetSingleDataNCR,
 
     getscheduledata,
     deleteschedule,
@@ -1906,6 +2028,8 @@ module.exports = {
     getalldataIW37nBase,
     getalldataIW37nReport,
     getalldataIW39Report,
+    getalldataIW29Report,
+    TemporalEliminarSemana,    
 
     pruebacronologica,
     prueba,

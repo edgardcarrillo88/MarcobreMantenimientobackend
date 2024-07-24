@@ -61,6 +61,7 @@ const uploadexcel = (req, res) => {
     });
 };
 
+
 const getalldataactual = async (req, res) => {
   console.log("ejecutando get all data");
   const data = await actualmodel.find({});
@@ -285,6 +286,49 @@ const GetAllDataActualForPowerBI = async (req, res) => {
 
 }
 
+const GetAllDataActualForPowerExcel = async (req, res) => {
+
+  try {
+
+    res.setHeader('Content-Type', 'application/json');
+
+    res.write('[');
+
+    let isFirst = true;
+
+    const cursor = actualPlantamodel.find({ Mes: { $ne: 0 } })
+      .lean()
+      .cursor();
+
+    cursor.on('data', (item) => {
+      if (!isFirst) {
+        res.write(',');
+      } else {
+        isFirst = false;
+      }
+      res.write(JSON.stringify(item));
+      // console.log(cursor);
+    });
+
+    cursor.on('end', () => {
+      res.write(']');
+      res.end();
+      console.log("Finalizado");
+    });
+
+    cursor.on('error', (error) => {
+      console.error('Error al leer los datos:', error);
+      res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    });
+
+  } catch (error) {
+    console.error('Error al leer los datos:', error);
+    res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+  }
+
+
+}
+
 const borrandoDatosActualFiltrado = async (req, res) => {
 
   console.log("Borrando datos filtrados");
@@ -336,7 +380,7 @@ const getalldatabudgetplanta = async (req, res) => {
     cursor.on('end', () => {
       res.write(']');
       res.end();
-      console.log("Finalizado");
+      console.log("Finalizado Get all data budget planta");
     });
 
     cursor.on('error', (error) => {
@@ -378,13 +422,21 @@ const deleteallBudgetplanta = async (req, res) => {
 
 const UpdateSingleMonth = async (req, res) => {
   console.log("Ejecutando actualización por fila");
-  const { RowId, MesValue, MesMonto } = req.body;
+  const { RowId, MesValue, MesMonto, TipoActual } = req.body;
   console.log(req.body);
 
   if (!MesValue && !MesMonto) {
+    console.log("Falta información necesaria para la actualización.");
     return res
-      .status(400)
+      .status(202)
       .send("Falta información necesaria para la actualización.");
+  }
+
+  if (TipoActual === "Real") {
+    console.log("No se pueden eliminar datos reales");
+    return res
+      .status(202)
+      .send("No se pueden eliminar datos reales");
   }
 
   try {
@@ -410,6 +462,20 @@ const UpdateGroupMonth = async (req, res) => {
   console.log(req.body);
   console.log("Ejecutando actualización por grupo");
 
+
+  const FilterValue = req.body.filter((item) => {
+    return item.TipoActual === "Real"
+  })
+
+
+  if (FilterValue.length) {
+    console.log("No se pueden actualizar datos reales");
+    return res
+      .status(202)
+      .send("No se pueden actualizar datos reales");
+  }
+
+
   const dataUpdated = req.body.map(async (item) => {
     const data = await actualPlantamodel.findByIdAndUpdate(
       item._id,
@@ -420,11 +486,11 @@ const UpdateGroupMonth = async (req, res) => {
   Promise.all(dataUpdated)
     .then(() => {
       console.log("Todos los datos guardados en la base de datos");
-      res.status(200).json({ message: "Datos guardados en la base de datos" });
+      res.status(200).json("Datos Actualizados en la base de datos");
     })
     .catch((error) => {
       console.error("Error al guardar los datos:", error);
-      res.status(500).json({ error: "Error al guardar los datos" });
+      res.status(500).json("Error al guardar los datos");
     });
 };
 
@@ -464,6 +530,7 @@ module.exports = {
   deleteallActualplanta,
   deleteallBudgetplanta,
   GetAllDataActualForPowerBI,
+  GetAllDataActualForPowerExcel,
   borrandoDatosActualFiltrado,
 
   UpdateSingleMonth,

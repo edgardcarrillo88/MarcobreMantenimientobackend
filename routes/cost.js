@@ -14,6 +14,7 @@ costrouter.post('/deletebudgetplanta',costcontroller.deleteallBudgetplanta)
 
 costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
 costrouter.get('/getalldataactualplantaPowerBI',costcontroller.GetAllDataActualForPowerBI)
+costrouter.get('/getalldataactualplantaPowerExcel',costcontroller.GetAllDataActualForPowerExcel)
 costrouter.get('/getalldatabudgetplanta',costcontroller.getalldatabudgetplanta)
 
 costrouter.post('/borrardatosactual',costcontroller.borrandoDatosActualFiltrado)
