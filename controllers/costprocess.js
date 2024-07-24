@@ -296,7 +296,7 @@ const GetAllDataActualForPowerExcel = async (req, res) => {
 
     let isFirst = true;
 
-    const cursor = actualPlantamodel.find({ Mes: { $ne: 0 } })
+    const cursor = actualPlantamodel.find({})
       .lean()
       .cursor();
 
