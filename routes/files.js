@@ -18,10 +18,18 @@ filesrouter.post('/loadroster',Upload.single('file'),filecontroller.uploadexcelr
 
 //Parada de planta
 filesrouter.post('/loadpersonalcontratista',Upload.single('file'),filecontroller.uploadexcelPersonalContratistas)
+filesrouter.post('/loadhabitaciones',Upload.single('file'),filecontroller.LoadHabitaciones)
+
 
 
 // filesrouter.post('/valorizaciones',Upload.single('file'),filecontroller.valorizaciones)
 // filesrouter.get('/dataedp',filecontroller.dataedp)
 // filesrouter.post('/deleteallEdp',filecontroller.deleteallEdp)
+
+
+//Provisiones
+filesrouter.post('/loadprovisionestemp',Upload.single('file'),filecontroller.LoadProvisionesTemp)
+filesrouter.post('/loadprovisiones',Upload.single('file'),filecontroller.LoadProvisionesTemp)
+
 
 module.exports = filesrouter

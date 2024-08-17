@@ -67,6 +67,10 @@ datarouter.post('/evaluacionpdp',datacontroller.EvaluacionPdP)
 datarouter.get('/obtenerdatosevaluacion',datacontroller.ObtenerDatosEvaluacionPdP)
 datarouter.post('/temporalparadadeplanta',datacontroller.TemporalParadaDePlanta)
 
+datarouter.get('/getalldatahabitaciones',datacontroller.GetAllDataHabitaciones)
+
+
+
 
 
 //Registro de Polines

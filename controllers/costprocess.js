@@ -9,7 +9,12 @@ const budgetmodel = require("../models/budget");
 const actualPlantamodel = require("../models/costplanta");
 const budgetPlantamodel = require("../models/budgetplanta");
 
+//Modelo Provisiones
+const ProvisionesModel = require("../models/Provisiones")
+
+
 const mongoose = require("mongoose");
+const { promises } = require("dns");
 
 //Manto Mina
 const uploadexcel = (req, res) => {
@@ -105,7 +110,8 @@ const getalldataactualplanta = async (req, res) => {
   console.log("ejecutando get all data planta");
 
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  // const limit = parseInt(req.query.limit) || 20;
+  const limit = parseInt(req.query.perPage) || 10;
   const mes = parseInt(req.query.Mes) || 0;
   const planta = req.query.Planta;
 
@@ -151,96 +157,11 @@ const getalldataactualplanta = async (req, res) => {
   }
 
 
-
-
   console.log(query);
 
 
   const data = await actualPlantamodel.paginate(query, { page, limit });
   res.status(200).json(data);
-
-  // zlib.gzip(JSON.stringify(data), (err, compressedData) => {
-  //     if (err) {
-  //       console.error("Error al comprimir los datos:", err);
-  //       res.status(500).send("Error interno del servidor");
-  //     } else {
-  //       // Configurar los encabezados de respuesta para indicar que se envía una respuesta comprimida
-  //       res.setHeader('Content-Type', 'application/json');
-  //       res.setHeader('Content-Encoding', 'gzip');
-  //       res.status(200).send(compressedData);
-  //     }
-  //   });
-
-  // try {
-  //     //const batchSize = 1000; // Tamaño del lote
-
-  //     // Establecemos el encabezado Content-Type como JSON
-  //     res.setHeader('Content-Type', 'application/json');
-
-  //     res.write('['); // Comenzamos el arreglo JSON
-
-  //     let isFirst = true; // Para determinar si es el primer elemento del arreglo
-
-  //     //let skip = 0;
-
-  //     const cursor = actualPlantamodel.find({ Mes: { $ne: 0 } })
-  //         .lean()
-  //         .cursor(); // Obtener un stream de documentos
-
-  //     cursor.on('data', (item) => {
-  //         // Envía los datos al cliente línea por línea en formato JSON
-  //         if (!isFirst) {
-  //             res.write(',');
-  //         } else {
-  //             isFirst = false;
-  //         }
-  //         res.write(JSON.stringify(item));
-  //         console.log("ejecutando");
-  //         console.log(cursor);
-  //     });
-
-  //     cursor.on('end', () => {
-  //         res.write(']'); // Finalizamos el arreglo JSON
-  //         res.end(); // Finalizamos la respuesta
-  //         console.log("Finalizado");
-  //     });
-
-  //     cursor.on('error', (error) => {
-  //         console.error('Error al leer los datos:', error);
-  //         res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
-  //     });
-
-  // } catch (error) {
-  //     console.error('Error al leer los datos:', error);
-  //     res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
-  // }
-
-  //-----------------------------------------------------------------------------------
-  //-----------------------------------------------------------------------------------
-
-  // try {
-  //     const cursor = actualPlantamodel.find({ Mes: { $ne: 0 } })
-  //         .lean()
-  //         .cursor();
-
-  //     cursor.on('data', (item) => {
-  //         // Envía cada objeto como una línea separada
-  //         res.write(JSON.stringify(item) + '\n');
-  //     });
-
-  //     cursor.on('end', () => {
-  //         res.end();
-  //     });
-
-  //     cursor.on('error', (error) => {
-  //         console.error('Error al leer los datos:', error);
-  //         res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
-  //     });
-
-  // } catch (error) {
-  //     console.error('Error al leer los datos:', error);
-  //     res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
-  // }
 };
 
 const GetAllDataActualForPowerBI = async (req, res) => {
@@ -420,6 +341,25 @@ const deleteallBudgetplanta = async (req, res) => {
     });
 };
 
+
+const ArreglandoCojudecesQueHice = async (req, res) => {
+  console.log("Corrienda la cojudeces esta");
+
+  try {
+    const update = await actualPlantamodel.updateMany(
+      { "Planta": "Gerencia de Mantenimiento" },
+      { $set: { "Planta": "Gerencia Mantenimiento" } }
+    )
+    res.status(200).json(update);
+  } catch (error) {
+    res.status(400).json({ Message: "Error", error })
+    console.log(error);
+  }
+}
+
+
+//Forecast
+
 const UpdateSingleMonth = async (req, res) => {
   console.log("Ejecutando actualización por fila");
   const { RowId, MesValue, MesMonto, TipoActual } = req.body;
@@ -495,7 +435,6 @@ const UpdateGroupMonth = async (req, res) => {
 };
 
 
-
 const Temporal = async (req, res) => {
 
   console.log("Borrando datos filtrados");
@@ -519,6 +458,73 @@ const Temporal = async (req, res) => {
 
 }
 
+//Provisiones
+
+const LoadProvisiones = async (req, res) => {
+  console.log("Guardadndo datos de provisiones");
+  console.log(req.body);
+
+  try {
+    const PreData = req.body.map(async (item) => {
+      const data = new ProvisionesModel(item)
+      return data.save()
+    })
+
+    await Promise.all(PreData)
+
+    res.status(200).json({ Message: "Datos guaraddos de manera correcta" })
+    console.log("Datos guardados de manera correcta");
+
+  } catch (error) {
+    res.status(500).json({ Message: "Error al guardar los datos: ", error })
+  }
+
+}
+
+const GetAllDataProvisiones = async (req, res) => {
+  console.log("ejecutando get all data provisiones");
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.perPage) || 10;
+  const planta = req.query.Planta;
+
+  console.log(req.query);
+
+
+  let query = {
+  };
+
+  // console.log(query);
+  console.log("page: ", page);
+  console.log("Limit: ", limit);
+
+  const data = await ProvisionesModel.paginate(query, { page, limit });
+
+  const MontoTotal = await ProvisionesModel.aggregate([
+    { $match: query },
+    // { $group: { _id: null, total: { $sum: "$Monto" } } },
+    { $group: { _id: "$Moneda", total: { $sum: "$Monto" } } },
+  ]);
+
+  console.log(MontoTotal);
+
+  res.status(200).json({ data, MontoTotal });
+}
+
+const DeleteAllDataProvisiones = async (req, res) => {
+  console.log("borrando todos los datos de provisiones");
+  ProvisionesModel.deleteMany({})
+    .then(() => {
+      console.log("Todos los datos de provisiones eliminados correctamente");
+      res.status(200).json({ Message: "Datos eliminados de manera correcta" })
+    })
+    .catch((error) => {
+      console.error("Error al eliminar documentos:", error);
+      res.status(400).json(error)
+    });
+}
+
+
 module.exports = {
   uploadexcel,
   getalldataactual,
@@ -537,4 +543,9 @@ module.exports = {
   UpdateGroupMonth,
 
   Temporal,
+  LoadProvisiones,
+  DeleteAllDataProvisiones,
+  GetAllDataProvisiones,
+
+  ArreglandoCojudecesQueHice,
 };

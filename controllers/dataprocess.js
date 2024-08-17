@@ -14,6 +14,8 @@ const Induccionmodel = require('../models/induccionPdP')
 const PersonalContratistamodel = require('../models/personalcontratistas')
 const EvaluacionPdPmodel = require('../models/evaluacionpdp')
 
+const HabitacionesModel = require("../models/ParadaPlanta/Habilitaciones/Habitaciones")
+
 //Modelos Reporte de Falla
 const failformmodel = require('../models/failform')
 const dailyreportmodel = require('../models/dailyreport')
@@ -41,6 +43,9 @@ const update = require('../models/updates');
 
 //Modelos NCR
 NCRReportModel = require('../models/NCR')
+
+//Modelo Provisiones
+ProvisionesModel = require('../models/Provisiones')
 
 
 
@@ -1090,7 +1095,7 @@ const uploadexcelIndicadoresMantto = (req, res) => {
 
         try {
 
-            console.log("cargando datos");
+            // console.log("cargando datos");
             const data = new baseindicadoresmodel(rowData);
             await data.save();
 
@@ -1135,7 +1140,7 @@ const uploadexceliw37nbase = (req, res) => {
 
         try {
 
-            console.log("cargando datos");
+            // console.log("cargando datos");
             rowData.Semana = numeroDeSemana;
             const data = new iw37nbasemodel(rowData);
             await data.save();
@@ -1180,7 +1185,7 @@ const uploadexceliw37nreport = (req, res) => {
 
         try {
 
-            console.log("cargando datos");
+            // console.log("cargando datos");
             rowData.Semana = numeroDeSemana;
             const data = new iw37nreportmodel(rowData);
             await data.save();
@@ -1225,7 +1230,7 @@ const uploadexceliw39report = (req, res) => {
 
         try {
 
-            console.log("cargando datos");
+            // console.log("cargando datos");
             rowData.Semana = numeroDeSemana;
             const data = new iw39reportmodel(rowData);
             await data.save();
@@ -1269,7 +1274,7 @@ const uploadexceliw29report = (req, res) => {
     const dataPromises = excelData.map(async (rowData) => {
 
         try {
-            console.log("cargando datos");
+            // console.log("cargando datos");
             rowData.Semana = numeroDeSemana;
             const data = new iw29reportmodel(rowData);
             await data.save();
@@ -1306,7 +1311,7 @@ const uploadexcelroster = async (req, res) => {
 
         try {
 
-            console.log("cargando datos");
+            // console.log("cargando datos");
             const data = new RosterModel(rowData);
             await data.save();
 
@@ -1547,25 +1552,27 @@ const TemporalEliminarSemana = async (req, res) => {
 
     console.log("Borrando datos filtrados");
     console.log(req.query.Mes);
-  
-  
+
+
     try {
-  
-      await iw39reportmodel.deleteMany({
-        Semana: { $gte: req.query.Mes },
-        // Especialidad: "Parada de Planta"
-      });
-  
-      console.log("Ok");
-      res.status(200).send('Todos los datos iw39 eliminados correctamente');
-  
+
+        // iw37nbasemodel
+        // iw37nreportmodel
+        // iw39reportmodel
+
+        await iw37nreportmodel.deleteMany({
+            Semana: { $gte: req.query.Mes },
+            // Especialidad: "Parada de Planta"
+        });
+
+        console.log("Ok");
+        res.status(200).send('Todos los datos iw37nreportmodel eliminados correctamente');
+
     } catch (error) {
-      console.log(error);
+        console.log(error);
     }
-  
-  }
 
-
+}
 
 
 //Inducción Parada de Planta
@@ -1937,7 +1944,6 @@ const GetSingleDataNCR = async (req, res) => {
     }
 }
 
-
 const CrearNCR = async (req, res) => {
     console.log("Ejecutando crear NCR");
     try {
@@ -1946,7 +1952,6 @@ const CrearNCR = async (req, res) => {
         res.status(500).json({ Message: error })
     }
 }
-
 
 const GetAllDataNCR = async (req, res) => {
     console.log("Ejecutando Get all Data NCR");
@@ -1959,7 +1964,78 @@ const GetAllDataNCR = async (req, res) => {
     }
 }
 
+const LoadProvisionesTemp = async (req, res) => {
+
+    console.log("*Procesando datos de provisiones desde excel");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    try {
+
+        let excelData = xlsx.utils.sheet_to_json(worksheet);
+        excelData = excelData.map(row => ({
+            ...row,
+            id: uuidv4()
+        }))
+
+        console.log('Todos los datos procesados correctamente');
+        res.status(200).json({ message: 'Datos procesados correctamente', datos: excelData });
+    } catch (error) {
+        console.error('Error al procesar los datos:', error);
+        res.status(500).json({ error: 'Error al procesar los datos' });
+    }
+
+}
+
+
+const LoadHabitaciones = async (req, res) => {
+
+    console.log("Cargando datos de Habitaciones");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    try {
+        const savedData = await Promise.all(
+            excelData.map(async (rowData) => {
+                const data = new HabitacionesModel(rowData);
+                await data.save();
+                return data;
+            })
+        );
+
+        console.log('Todos los datos guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos', datos: savedData });
+    } catch (error) {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    }
+
+}
+
+const GetAllDataHabitaciones = async (req, res) => {
+    console.log("Ejecutando Get all Data de Habitaciones");
+    try {
+        const data = await HabitacionesModel.find({})
+        console.log(data);
+        res.status(200).json({ Message: "Todo ok", data })
+    } catch (error) {
+        res.status(500).json({ Message: error })
+    }
+}
+
+const DeleteAllDataProvisiones = async(req,res)=>{
+
+}
+
+
 module.exports = {
+    LoadHabitaciones,
+    GetAllDataHabitaciones,
+
     Temporal,
     GetEquiposPlanta,
 
@@ -2029,7 +2105,7 @@ module.exports = {
     getalldataIW37nReport,
     getalldataIW39Report,
     getalldataIW29Report,
-    TemporalEliminarSemana,    
+    TemporalEliminarSemana,
 
     pruebacronologica,
     prueba,
@@ -2038,5 +2114,7 @@ module.exports = {
     EvaluacionPdP,
     TemporalParadaDePlanta,
     ObtenerDatosEvaluacionPdP,
-    updatetempReportIndicadores
+    updatetempReportIndicadores,
+
+    LoadProvisionesTemp,
 }
