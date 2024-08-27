@@ -47,6 +47,11 @@ NCRReportModel = require('../models/NCR')
 //Modelo Provisiones
 ProvisionesModel = require('../models/Provisiones')
 
+//Modelo Finanzas
+CeCosModel = require('../models/Finanzas/CeCos')
+ClaseCostosModel = require('../models/Finanzas/ClaseCostos')
+PartidasModel = require('../models/Finanzas/Partidas')
+
 
 
 //Parada de Planta
@@ -1560,13 +1565,12 @@ const TemporalEliminarSemana = async (req, res) => {
         // iw37nreportmodel
         // iw39reportmodel
 
-        await iw37nreportmodel.deleteMany({
+        await iw39reportmodel.deleteMany({
             Semana: { $gte: req.query.Mes },
-            // Especialidad: "Parada de Planta"
         });
 
         console.log("Ok");
-        res.status(200).send('Todos los datos iw37nreportmodel eliminados correctamente');
+        res.status(200).send('Todos los datos iw39reportmodel eliminados correctamente');
 
     } catch (error) {
         console.log(error);
@@ -1989,6 +1993,36 @@ const LoadProvisionesTemp = async (req, res) => {
 
 }
 
+const LoadDataFinanzas = async (req, res) => {
+    console.log("Cargando datos de finanzas");
+
+    // CeCosModel = require('../models/Finanzas/CeCos')
+    // ClaseCostosModel = require('../models/Finanzas/ClaseCostos')
+    // PartidasModel = require('../models/Finanzas/Partidas')
+
+
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    try {
+        const savedData = await Promise.all(
+            excelData.map(async (rowData) => {
+                const data = new PartidasModel(rowData);
+                await data.save();
+                return data;
+            })
+        );
+
+        console.log('Todos los datos guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos', datos: savedData });
+    } catch (error) {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    }
+}
+
 
 const LoadHabitaciones = async (req, res) => {
 
@@ -2027,7 +2061,7 @@ const GetAllDataHabitaciones = async (req, res) => {
     }
 }
 
-const DeleteAllDataProvisiones = async(req,res)=>{
+const DeleteAllDataProvisiones = async (req, res) => {
 
 }
 
@@ -2117,4 +2151,5 @@ module.exports = {
     updatetempReportIndicadores,
 
     LoadProvisionesTemp,
+    LoadDataFinanzas,
 }

@@ -26,6 +26,7 @@ const provisionesschema = mongoose.Schema({
     SolicitudReprovision: String,
     Pagado: String,
     Planta: String,
+    TipoProvision: String,
 
     deleted: { type: Boolean, default: false }
 },

@@ -511,6 +511,50 @@ const GetAllDataProvisiones = async (req, res) => {
   res.status(200).json({ data, MontoTotal });
 }
 
+const GetAllDataProvisionesForPowerBI = async(req,res)=>{
+
+  console.log("Ejecutando Get data provisiones");
+  
+  try {
+
+    res.setHeader('Content-Type', 'application/json');
+
+    res.write('[');
+
+    let isFirst = true;
+
+    const cursor = ProvisionesModel.find({})
+      .lean()
+      .cursor();
+
+    cursor.on('data', (item) => {
+      if (!isFirst) {
+        res.write(',');
+      } else {
+        isFirst = false;
+      }
+      res.write(JSON.stringify(item));
+      // console.log(cursor);
+    });
+
+    cursor.on('end', () => {
+      res.write(']');
+      res.end();
+      console.log("Finalizado");
+    });
+
+    cursor.on('error', (error) => {
+      console.error('Error al leer los datos:', error);
+      res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    });
+
+  } catch (error) {
+    console.error('Error al leer los datos:', error);
+    res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+  }
+
+}
+
 const DeleteAllDataProvisiones = async (req, res) => {
   console.log("borrando todos los datos de provisiones");
   ProvisionesModel.deleteMany({})
@@ -548,4 +592,5 @@ module.exports = {
   GetAllDataProvisiones,
 
   ArreglandoCojudecesQueHice,
+  GetAllDataProvisionesForPowerBI
 };

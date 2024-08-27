@@ -33,6 +33,7 @@ costrouter.post('/temp',costcontroller.Temporal)
 costrouter.post('/loadprovisiones',costcontroller.LoadProvisiones)
 costrouter.get('/getalldataprovisiones',costcontroller.GetAllDataProvisiones)
 costrouter.post('/deletealldataprovisiones',costcontroller.DeleteAllDataProvisiones)
+costrouter.get('/GetAllDataProvisionesForPowerBI',costcontroller.GetAllDataProvisionesForPowerBI)
 
 
 
