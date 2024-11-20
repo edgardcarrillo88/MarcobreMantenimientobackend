@@ -21,6 +21,7 @@ costrouter.get('/getalldataactualplanta',costcontroller.getalldataactualplanta)
 costrouter.get('/getalldataactualplantaPowerBI',costcontroller.GetAllDataActualForPowerBI)
 costrouter.get('/getalldataactualplantaPowerExcel',costcontroller.GetAllDataActualForPowerExcel)
 costrouter.post('/borrardatosactual',costcontroller.borrandoDatosActualFiltrado)
+costrouter.post('/borrardatosprovant',costcontroller.borrandoDatosProvAntFiltrado)
 costrouter.post('/cojudeces',costcontroller.ArreglandoCojudecesQueHice)
 
 
@@ -32,8 +33,13 @@ costrouter.post('/temp',costcontroller.Temporal)
 //Provisiones
 costrouter.post('/loadprovisiones',costcontroller.LoadProvisiones)
 costrouter.get('/getalldataprovisiones',costcontroller.GetAllDataProvisiones)
+costrouter.get('/getalldataprovisionesContratistas',costcontroller.GetAllDataProvisionesContratistas)
 costrouter.post('/deletealldataprovisiones',costcontroller.DeleteAllDataProvisiones)
 costrouter.get('/GetAllDataProvisionesForPowerBI',costcontroller.GetAllDataProvisionesForPowerBI)
+
+
+costrouter.post('/updatestatusprovisiones',costcontroller.UpdateStatusProvisiones)
+
 
 
 

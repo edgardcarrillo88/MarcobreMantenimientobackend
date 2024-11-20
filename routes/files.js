@@ -31,5 +31,7 @@ filesrouter.post('/loaddatatemp',Upload.single('file'),filecontroller.uploadexce
 filesrouter.post('/loadprovisionestemp',Upload.single('file'),filecontroller.LoadProvisionesTemp) //Provisiones
 filesrouter.post('/loaddatafinanzas',Upload.single('file'),filecontroller.LoadDataFinanzas) //Provisiones
 
+filesrouter.post('/updatedatacompromisos',Upload.single('file'),filecontroller.UpdateDataCompromisos) //Forecast
+filesrouter.post('/updatedatapartidasprovisiones',Upload.single('file'),filecontroller.UpdateDataPartidasProvisiones) //Forecast
 
 module.exports = filesrouter

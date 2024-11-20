@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const axios = require('axios')
 const { S3, PutObjectCommand } = require('@aws-sdk/client-s3')
 const { v4: uuidv4 } = require('uuid')
+const { ObjectId } = require('mongodb');
 
 
 //Modelos Parada de Planta
@@ -40,6 +41,7 @@ const AndamiosReporteHistorial = require('../models/AndamiosReportesHistorial')
 //Modelos Backlog
 const Backlogreportmodel = require('../models/BacklogReport');
 const update = require('../models/updates');
+const actualplanta = require('../models/costplanta');
 
 //Modelos NCR
 NCRReportModel = require('../models/NCR')
@@ -123,6 +125,24 @@ const getfiltersdata = async (req, res) => {
     }
 
     res.status(200).json({ data })
+}
+
+const GetThirdParty = async (req, res) => {
+    console.log("Iniciando el proceso de obtener datos de contratistas");
+
+    try {
+        const response = await taskmodel.distinct('contratista');
+        const Contratistas = response.map((item, index) => (
+            {
+                uid: item,
+                name: item,
+            }
+        ))
+        res.status(200).json({ Contratistas });
+    } catch (error) {
+        console.log("Error en la ejecución");
+        console.log(error);
+    }
 }
 
 const getscheduledata = async (req, res) => {
@@ -1157,7 +1177,7 @@ const uploadexceliw37nbase = (req, res) => {
     });
     Promise.all(dataPromises)
         .then(() => {
-            console.log('Todos los datos guardados en la base de datos');
+            console.log('Todos los datos del Iw37nBase guardados en la base de datos');
             res.status(200).json({ message: 'Datos guardados en la base de datos' });
         })
         .catch((error) => {
@@ -1384,22 +1404,6 @@ const deleteallIW39 = async (req, res) => {
         });
 }
 
-const getalldataIndicadores = async (req, res) => {
-
-    console.log("ejecutando get all data de Indicadores");
-    const data = await baseindicadoresmodel.find({})
-    res.status(200).json(data)
-
-}
-
-const getalldataIW37nBase = async (req, res) => {
-
-    console.log("ejecutando get all data de IW37nBase");
-    const data = await iw37nbasemodel.find({})
-    res.status(200).json(data)
-
-}
-
 const DeleteDataIW37nBase = async (req, res) => {
     console.log("Borrando los datos del IW37N Base");
     try {
@@ -1412,21 +1416,109 @@ const DeleteDataIW37nBase = async (req, res) => {
     }
 }
 
+const getalldataIndicadores = async (req, res) => {
+
+    console.log("ejecutando get all data de Indicadores");
+    const data = await baseindicadoresmodel.find({})
+    res.status(200).json(data)
+
+}
+
+const getalldataIW37nBase = async (req, res) => {
+
+    console.log("ejecutando get all data de IW37nBase");
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw37nbasemodel.find({
+            // "Semana": { "$gte": 31 }
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+
+}
+
 const getalldataIW37nReport = async (req, res) => {
 
+
     console.log("ejecutando get all data de IW37nReport");
-    const data = await iw37nreportmodel.find({})
-    res.status(200).json(data)
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw37nreportmodel.find({
+            // "Semana": { "$gte": 31 }
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
 
 }
 
 const getalldataIW39Report = async (req, res) => {
 
     console.log("ejecutando get all data de IW39Report");
-    // const data = await iw39reportmodel.find({})
-    // res.status(200).json(data)
-
-
 
     try {
 
@@ -1486,7 +1578,9 @@ const getalldataIW29Report = async (req, res) => {
 
         let isFirst = true;
 
-        const cursor = iw29reportmodel.find({})
+        const cursor = iw29reportmodel.find({
+
+        })
             .lean()
             .cursor();
 
@@ -1565,12 +1659,12 @@ const TemporalEliminarSemana = async (req, res) => {
         // iw37nreportmodel
         // iw39reportmodel
 
-        await iw39reportmodel.deleteMany({
+        await iw37nbasemodel.deleteMany({
             Semana: { $gte: req.query.Mes },
         });
 
         console.log("Ok");
-        res.status(200).send('Todos los datos iw39reportmodel eliminados correctamente');
+        res.status(200).send('Todos los datos iw37nbasemodel eliminados correctamente');
 
     } catch (error) {
         console.log(error);
@@ -1669,20 +1763,20 @@ const EvaluacionPdP = async (req, res) => {
 
     try {
 
-        const response = await axios.get(apiUrl, {
-            headers: {
-                Authorization: `Bearer ${process.env.TOKEN_DNI}`
-            }
-        })
-        console.log(response.data);
+        // const response = await axios.get(apiUrl, {
+        //     headers: {
+        //         Authorization: `Bearer ${process.env.TOKEN_DNI}`
+        //     }
+        // })
+        // console.log(response.data);
 
 
-        if (response.data.success) {
-            req.body.answers.Nombre = `${response.data.nombres} ${response.data.apellidoPaterno} ${response.data.apellidoMaterno}`;
-        } else {
-            console.log("Error");
-            //return res.status(400).json({ message: "No se encontró información válida para el DNI proporcionado" });
-        }
+        // if (response.data.success) {
+        //     req.body.answers.Nombre = `${response.data.nombres} ${response.data.apellidoPaterno} ${response.data.apellidoMaterno}`;
+        // } else {
+        //     console.log("Error");
+        //     //return res.status(400).json({ message: "No se encontró información válida para el DNI proporcionado" });
+        // }
 
         const data = new EvaluacionPdPmodel({
             answer: req.body.answers,
@@ -1697,8 +1791,6 @@ const EvaluacionPdP = async (req, res) => {
         console.log(error);
         res.status(500).json({ message: "error al guardar la información" })
     }
-
-
 }
 
 const ObtenerDatosEvaluacionPdP = async (req, res) => {
@@ -1771,8 +1863,6 @@ const GuardarImagenPreAviso = async (req, res) => {
     }
 
 }
-
-
 
 
 
@@ -2065,6 +2155,90 @@ const DeleteAllDataProvisiones = async (req, res) => {
 
 }
 
+const UpdateDataCompromisos = async (req, res) => {
+    console.log("Actualizando datos de compromisos");
+
+
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    console.log(excelData.length);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+            const objectId = new ObjectId(rowData._id);
+            console.log(rowData);
+            const SPOC = rowData.SPConOC.toString();
+            const SPOCPos = rowData.SPConOCPos.toString();
+
+            const data = await actualplanta.findByIdAndUpdate(
+                objectId,
+                {
+                    $set: {
+                        SPConOC: SPOC,
+                        SPConOCPos: SPOCPos,
+                    }
+                }, { new: true })
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos Actualizados en la base de datos')
+            res.status(200).json({ message: 'Datos Actualizados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
+
+const UpdateDataPartidasProvisiones = async (req, res) => {
+    console.log("Actualizando partidas de provisiones");
+
+
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    // console.log(excelData.length);
+    // console.log(excelData);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+            const objectId = new ObjectId(rowData._id);
+            console.log(rowData);
+
+            const data = await actualplanta.findByIdAndUpdate(
+                objectId,
+                {
+                    $set: {
+                        Partida: rowData.Partida,
+                    }
+                }, { new: true })
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos Actualizados en la base de datos')
+            res.status(200).json({ message: 'Datos Actualizados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
 
 module.exports = {
     LoadHabitaciones,
@@ -2091,6 +2265,7 @@ module.exports = {
     GetSingleDataNCR,
 
     getscheduledata,
+    GetThirdParty,
     deleteschedule,
     deletehistorydata,
     statusupdate,
@@ -2152,4 +2327,6 @@ module.exports = {
 
     LoadProvisionesTemp,
     LoadDataFinanzas,
+    UpdateDataCompromisos,
+    UpdateDataPartidasProvisiones
 }

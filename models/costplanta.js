@@ -31,6 +31,8 @@ const actualplantaschema = mongoose.Schema(
     CN: String,
     MesBase:Number,
     MontoBase:Number,
+    SPConOC: String,
+    SPConOCPos: String,
     deleted: { type: Boolean, default: false },
   },
   {

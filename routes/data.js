@@ -23,6 +23,7 @@ datarouter.get('/getsingledata',datacontroller.getsingledata)
 datarouter.post('/dailyreport',uploadMiddleware,datacontroller.dailyreport)
 datarouter.get('/getalldatadailyreport',datacontroller.getalldatadailyreport)
 
+
 //Reporte de andamios
 datarouter.post('/guardardatosandamios',datacontroller.RegistrarAndamios)
 datarouter.post('/actualizardatosandamios',datacontroller.ActualizarAndamios)
@@ -52,6 +53,7 @@ datarouter.post('/deleteschedulehistorydata',datacontroller.deletehistorydata)
 
 
 datarouter.get('/filters',datacontroller.getfiltersdata)
+datarouter.get('/thirdparty',datacontroller.GetThirdParty)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
 datarouter.get('/filtereddata',datacontroller.filtereddata)
 datarouter.put('/updatedata',datacontroller.updatedata)

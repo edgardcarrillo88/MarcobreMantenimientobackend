@@ -28,11 +28,11 @@ const uploadexcel = (req, res) => {
     if (req.body.area === "true") {
       try {
         if (req.body.type === "true") {
-          console.log("cargando el actual de mina");
+          // console.log("cargando el actual de mina");
           const data = new actualmodel(rowData);
           await data.save();
         } else {
-          console.log("cargando el budget de mina");
+          // console.log("cargando el budget de mina");
           const data = new budgetmodel(rowData);
           await data.save();
         }
@@ -42,11 +42,11 @@ const uploadexcel = (req, res) => {
     } else {
       try {
         if (req.body.type === "true") {
-          console.log("cargando el actual de planta");
+          // console.log("cargando el actual de planta");
           const data = new actualPlantamodel(rowData);
           await data.save();
         } else {
-          console.log("cargando el budget de planta");
+          // console.log("cargando el budget de planta");
           const data = new budgetPlantamodel(rowData);
           await data.save();
         }
@@ -162,6 +162,7 @@ const getalldataactualplanta = async (req, res) => {
 
   const data = await actualPlantamodel.paginate(query, { page, limit });
   res.status(200).json(data);
+  console.log("Respuesta exitosa");
 };
 
 const GetAllDataActualForPowerBI = async (req, res) => {
@@ -252,14 +253,14 @@ const GetAllDataActualForPowerExcel = async (req, res) => {
 
 const borrandoDatosActualFiltrado = async (req, res) => {
 
-  console.log("Borrando datos filtrados");
+  console.log("Borrando datos reales del mes:", req.body.Mes);
 
   console.log(parseFloat(req.body.Mes));
 
   try {
     await actualPlantamodel.deleteMany({
       Mes: parseFloat(req.body.Mes),
-      CategoriaActual: { $in: ["Real", "ProvAnt"] }
+      CategoriaActual: { $in: ["Real"] }
     });
     res.status(200).send('Todos los datos filtrados del actual eliminados correctamente');
     console.log('Todos los datos filtrados del actual eliminados correctamente');
@@ -269,6 +270,28 @@ const borrandoDatosActualFiltrado = async (req, res) => {
   }
 
 }
+
+
+const borrandoDatosProvAntFiltrado = async (req, res) => {
+
+  console.log("Borrando datos ProvAnt del mes:", req.body.Mes);
+
+  console.log(parseFloat(req.body.Mes));
+
+  try {
+    await actualPlantamodel.deleteMany({
+      Mes: parseFloat(req.body.Mes),
+      CategoriaActual: { $in: ["ProvAnt"] }
+    });
+    res.status(200).send('Todos los datos ProvAnt del actual eliminados correctamente');
+    console.log('Todos los datos ProvAnt del actual eliminados correctamente');
+  } catch (error) {
+    console.error('Error al eliminar documentos:', error);
+    res.status(500).send('Error al eliminar documentos');
+  }
+
+}
+
 
 const getalldatabudgetplanta = async (req, res) => {
   console.log("ejecutando get all data");
@@ -408,7 +431,7 @@ const UpdateGroupMonth = async (req, res) => {
   })
 
 
-  if (FilterValue.length) {
+  if (FilterValue.length>0) {
     console.log("No se pueden actualizar datos reales");
     return res
       .status(202)
@@ -498,23 +521,50 @@ const GetAllDataProvisiones = async (req, res) => {
   console.log("page: ", page);
   console.log("Limit: ", limit);
 
+  const convertExcelDateToDate = (excelDate) => {
+    return new Date((excelDate - 25569) * 86400 * 1000);
+  };
+
   const data = await ProvisionesModel.paginate(query, { page, limit });
 
-  const MontoTotal = await ProvisionesModel.aggregate([
+  const GroupData = await ProvisionesModel.aggregate([
     { $match: query },
     // { $group: { _id: null, total: { $sum: "$Monto" } } },
-    { $group: { _id: "$Moneda", total: { $sum: "$Monto" } } },
+    // { $group: { _id: "$Moneda", total: { $sum: "$Monto" } } },
+    {
+      $group: {
+        _id: {
+          Glosa: "$Glosa",
+          NombreProveedor: "$NombreProveedor",
+          DescripcionServicio: "$DescripcionServicio",
+          //  Planta:"$Planta",
+          Partida: "$Partida",
+          Status: "$Status",
+          Moneda: "$Moneda",
+          FechaEnvio: "$FechaEnvioProvision"
+        },
+        Monto: { $sum: "$Monto" }
+
+      }
+    },
   ]);
 
-  console.log(MontoTotal);
+  // console.log(GroupData);
+  const GroupProcesed = GroupData.map(obj => (
+    {
+      ...obj._id,
+      Monto: obj.Monto,
+      FechaEnvio: convertExcelDateToDate(Number(obj._id.FechaEnvio)),
+    }
+  ))
 
-  res.status(200).json({ data, MontoTotal });
+  res.status(200).json({ data, GroupProcesed });
 }
 
-const GetAllDataProvisionesForPowerBI = async(req,res)=>{
+const GetAllDataProvisionesForPowerBI = async (req, res) => {
 
   console.log("Ejecutando Get data provisiones");
-  
+
   try {
 
     res.setHeader('Content-Type', 'application/json');
@@ -557,7 +607,9 @@ const GetAllDataProvisionesForPowerBI = async(req,res)=>{
 
 const DeleteAllDataProvisiones = async (req, res) => {
   console.log("borrando todos los datos de provisiones");
-  ProvisionesModel.deleteMany({})
+  ProvisionesModel.deleteMany({
+    FechaEnvioProvision: "45565"
+  })
     .then(() => {
       console.log("Todos los datos de provisiones eliminados correctamente");
       res.status(200).json({ Message: "Datos eliminados de manera correcta" })
@@ -566,6 +618,47 @@ const DeleteAllDataProvisiones = async (req, res) => {
       console.error("Error al eliminar documentos:", error);
       res.status(400).json(error)
     });
+}
+
+const GetAllDataProvisionesContratistas = async (req, res) => {
+  console.log("Obteniendo datos de contratistas");
+  try {
+    const response = await ProvisionesModel.distinct('NombreProveedor');
+    const Contratistas = response.map((item, index) => (
+      {
+        uid: item,
+        name: item,
+      }
+    ))
+    res.status(200).json({ Contratistas });
+  } catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+  }
+
+}
+
+const UpdateStatusProvisiones = async (req, res) => {
+  console.log("Ejecutando actualización de status de provisiones");
+  const { status, Glosa } = req.body;
+  console.log(status);
+  console.log(Glosa);
+
+  if (!status || !Glosa) {
+    return res.status(400).json({ Message: "Faltan parámetros necesarios" });
+  }
+
+  try {
+    const update = await ProvisionesModel.updateMany(
+      { "Glosa": Glosa },
+      { $set: { "Status": status } }
+    )
+    res.status(200).json({ Message: "Actualización exitosa" });
+  } catch (error) {
+    res.status(400).json({ Message: "Error", error })
+    console.log(error);
+  }
+
 }
 
 
@@ -592,5 +685,8 @@ module.exports = {
   GetAllDataProvisiones,
 
   ArreglandoCojudecesQueHice,
-  GetAllDataProvisionesForPowerBI
+  GetAllDataProvisionesForPowerBI,
+  GetAllDataProvisionesContratistas,
+  UpdateStatusProvisiones,
+  borrandoDatosProvAntFiltrado
 };
