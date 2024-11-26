@@ -11,7 +11,7 @@ const path = require('path')
 const {pruebacronologica} = require('./controllers/dataprocess')
 
 dbconnect(app)
-pruebacronologica()
+// pruebacronologica()
 
 // app.use(cors({credentials: true}))
 
