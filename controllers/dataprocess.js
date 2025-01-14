@@ -31,7 +31,7 @@ const iw37nbasemodel = require('../models/iw37nbase')
 const iw37nreportmodel = require('../models/iw37nreport')
 const iw39reportmodel = require('../models/iw39report')
 const iw29reportmodel = require('../models/iw29report')
-const iw47reportmodel = require('../models/iw47report')
+const iw47reportmodel = require('../models/IW47report')
 const RosterModel = require('../models/roster')
 
 //Modelos GestionAndamios
