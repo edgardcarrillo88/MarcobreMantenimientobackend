@@ -9,7 +9,7 @@ const updatemodel = require('../../models/v2/ParadaPlanta/Cronograma/updates')
 //Parada de Planta
 const uploadexcel = (req, res) => {
 
-    console.log("ejecutando carga de datos de cronograma de parada de planta");
+    console.log("ejecutando carga de datos de cronograma de parada de planta.");
     const bufferData = req.file.buffer;
     const workbook = xlsx.read(bufferData, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
