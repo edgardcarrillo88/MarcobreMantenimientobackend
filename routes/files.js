@@ -11,6 +11,7 @@ filesrouter.post('/loadiw37nbase',Upload.single('file'),filecontroller.uploadexc
 filesrouter.post('/loadiw37nreport',Upload.single('file'),filecontroller.uploadexceliw37nreport)
 filesrouter.post('/loadiw39report',Upload.single('file'),filecontroller.uploadexceliw39report)
 filesrouter.post('/loadiw29report',Upload.single('file'),filecontroller.uploadexceliw29report)
+filesrouter.post('/loadiw47report',Upload.single('file'),filecontroller.uploadexceliw47report)
 filesrouter.post('/loadroster',Upload.single('file'),filecontroller.uploadexcelroster)
 
 //Parada de planta
@@ -33,5 +34,10 @@ filesrouter.post('/loaddatafinanzas',Upload.single('file'),filecontroller.LoadDa
 
 filesrouter.post('/updatedatacompromisos',Upload.single('file'),filecontroller.UpdateDataCompromisos) //Forecast
 filesrouter.post('/updatedatapartidasprovisiones',Upload.single('file'),filecontroller.UpdateDataPartidasProvisiones) //Forecast
+
+
+//Logistica
+
+filesrouter.post('/loadlogistica',Upload.single('file'),filecontroller.LoadLogistica) 
 
 module.exports = filesrouter

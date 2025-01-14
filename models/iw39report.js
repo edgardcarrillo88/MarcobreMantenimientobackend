@@ -4,6 +4,12 @@ const iw39reportschema = mongoose.Schema({
     Orden: String,
     "Status del sistema": String,
     Semana: String,
+    "StatUsu": String,
+    P: String,
+    "Ubicación técnica": String,
+    "CpoClasif": String,
+    "Texto breve": String,
+    "PtoTrbRes": String,
     deleted: { type: Boolean, default: false }
 },
     {

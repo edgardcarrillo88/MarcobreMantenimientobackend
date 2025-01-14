@@ -606,9 +606,9 @@ const GetAllDataProvisionesForPowerBI = async (req, res) => {
 }
 
 const DeleteAllDataProvisiones = async (req, res) => {
-  console.log("borrando todos los datos de provisiones");
+  console.log("borrando todos los datos de provisiones Pendientes de aprobación");
   ProvisionesModel.deleteMany({
-    FechaEnvioProvision: "45565"
+    Status: "Pendiente Aprobación"
   })
     .then(() => {
       console.log("Todos los datos de provisiones eliminados correctamente");

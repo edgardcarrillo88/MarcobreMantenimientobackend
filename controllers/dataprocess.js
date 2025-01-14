@@ -31,6 +31,7 @@ const iw37nbasemodel = require('../models/iw37nbase')
 const iw37nreportmodel = require('../models/iw37nreport')
 const iw39reportmodel = require('../models/iw39report')
 const iw29reportmodel = require('../models/iw29report')
+const iw47reportmodel = require('../models/iw47report')
 const RosterModel = require('../models/roster')
 
 //Modelos GestionAndamios
@@ -53,6 +54,19 @@ ProvisionesModel = require('../models/Provisiones')
 CeCosModel = require('../models/Finanzas/CeCos')
 ClaseCostosModel = require('../models/Finanzas/ClaseCostos')
 PartidasModel = require('../models/Finanzas/Partidas')
+
+//Modelos Logística
+const IH09Model = require('../models/Logistica/IH09')
+const MB52Model = require('../models/Logistica/MB52')
+const MCBAModel = require('../models/Logistica/MCBA')
+const ME2LModel = require('../models/Logistica/ME2L')
+const ME5A1Model = require('../models/Logistica/ME5A1')
+const ME5A2Model = require('../models/Logistica/ME5A2')
+const ZMM003JP11Model = require('../models/Logistica/ZMM003JP11')
+const ZMM003JP14Model = require('../models/Logistica/ZMM003JP14');
+const LogisticaModel = require('../models/Logistica/TAGMaterial')
+
+
 
 
 
@@ -143,6 +157,25 @@ const GetThirdParty = async (req, res) => {
         console.log("Error en la ejecución");
         console.log(error);
     }
+}
+
+const GetEspecialidad = async (req,res) =>{
+console.log("Ejecutando obtener especialidades");
+try {
+    const response = await taskmodel.distinct('especialidad');
+    const Especialidades = response.map((item, index) => (
+        {
+            uid: item,
+            name: item,
+        }
+    ))
+    console.log("Respuesta exitosa");
+    res.status(200).json({ Especialidades });
+} catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+    res.status(500).json({ error: 'Error al obtener las especialidades' });
+}
 }
 
 const getscheduledata = async (req, res) => {
@@ -1320,6 +1353,50 @@ const uploadexceliw29report = (req, res) => {
         })
 }
 
+const uploadexceliw47report = (req, res) => {
+
+    console.log("ejecutando carga de datos de iw29report");
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const hoy = new Date();
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo - 1;
+    }
+
+    const numeroDeSemana = getWeekNumber(hoy);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+            // console.log("cargando datos");
+            rowData.Semana = numeroDeSemana;
+            const data = new iw47reportmodel(rowData);
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos de iw29report guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+}
+
 const uploadexcelroster = async (req, res) => {
 
     console.log("borrando todos los datos del Roster");
@@ -1414,6 +1491,18 @@ const DeleteDataIW37nBase = async (req, res) => {
         console.error('Error al eliminar documentos:', error);
         res.status(500).send('Error al eliminar documentos');
     }
+}
+
+const deleteallIW47 = async (req, res) => {
+    console.log("borrando todos los datos de IW47");
+    iw47reportmodel.deleteMany({})
+        .then(() => {
+            console.log('Todos los datos de IW47 eliminados correctamente');
+            res.status(200).send('Todos los datos de IW47 eliminados correctamente')
+        })
+        .catch((error) => {
+            console.error('Error al eliminar documentos:', error);
+        });
 }
 
 const getalldataIndicadores = async (req, res) => {
@@ -1614,32 +1703,406 @@ const getalldataIW29Report = async (req, res) => {
 
 }
 
-const updatetempReportIndicadores = async (req, res) => {
-    console.log("Actualización de objetos");
+const getalldataIW47Report = async (req, res) => {
 
-    // const iw37nbasemodel = require('../models/iw37nbase')
-    // const iw37nreportmodel = require('../models/iw37nreport')
-    // const iw39reportmodel = require('../models/iw39report')
+    console.log("ejecutando get all data de IW47Report");
 
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw47reportmodel.find({
+
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+}
+
+//-------------------------Single--------------------------
+
+const GetSingleWeekIW37nBase = async (req, res) => {
+
+    console.log("ejecutando Get Single Week de IW37nBase");
 
     const hoy = new Date();
-
     function getWeekNumber(d) {
         d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
         const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
         const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        return weekNo - 2;
+        return weekNo;
     }
 
-    const numeroDeSemana = getWeekNumber(hoy);
+    let numeroDeSemana;
+
+    console.log("Número de día (1 - 7): ", hoy.getDay());
+    if (hoy.getDay() === 1) {
+        numeroDeSemana = getWeekNumber(hoy) - 1;
+        if  (numeroDeSemana === 0) {
+            numeroDeSemana = 1;
+        }
+    } else {
+        numeroDeSemana = getWeekNumber(hoy);
+    }
+
+    console.log("Numero de semana IW37nBase: " + numeroDeSemana);
 
     try {
-        const data = await iw39reportmodel.updateMany(
-            {},
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw37nbasemodel.find({
+            "Semana": numeroDeSemana
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+
+}
+
+const GetSingleWeekIW37nReport = async (req, res) => {
+
+    console.log("ejecutando Get Single Week de IW37nReport");
+
+    const hoy = new Date();
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    let numeroDeSemana;
+
+    console.log("Número de día (1 - 7): ", hoy.getDay());
+    if (hoy.getDay() === 1) {
+        numeroDeSemana = getWeekNumber(hoy) - 1;
+        if  (numeroDeSemana === 0) {
+            numeroDeSemana = 1;
+        }
+    } else {
+        numeroDeSemana = getWeekNumber(hoy);
+    }
+
+    console.log("Numero de semana IW37nReport: " + numeroDeSemana);
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw37nreportmodel.find({
+            "Semana": numeroDeSemana
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+}
+
+const GetSingleWeekIW39Report = async (req, res) => {
+
+    console.log("ejecutando Get Single Week de IW39Report");
+
+    const hoy = new Date();
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    let numeroDeSemana;
+
+    console.log("Número de día (1 - 7): ", hoy.getDay());
+    if (hoy.getDay() === 1) {
+        numeroDeSemana = getWeekNumber(hoy) - 1;
+        if (numeroDeSemana === 0) {
+            numeroDeSemana = 1;
+        }
+    } else {
+        numeroDeSemana = getWeekNumber(hoy);
+    }
+
+    console.log("Numero de semana IW39: ", numeroDeSemana);
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw39reportmodel.find({
+            Semana: numeroDeSemana
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+}
+
+const GetSingleWeekIW29Report = async (req, res) => {
+
+    console.log("ejecutando Get Single Week de IW29Report");
+
+    const hoy = new Date();
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    let numeroDeSemana;
+
+    console.log("Número de día (1 - 7): ", hoy.getDay());
+    if (hoy.getDay() === 1) {
+        numeroDeSemana = getWeekNumber(hoy) - 1;
+        if (numeroDeSemana === 0) {
+            numeroDeSemana = 1;
+        }
+    } else {
+        numeroDeSemana = getWeekNumber(hoy);
+    }
+
+    console.log("Numero de semana IW29: " + numeroDeSemana);
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw29reportmodel.find({
+            "Semana": numeroDeSemana
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+
+}
+
+const GetSingleWeekIW47Report = async (req, res) => {
+
+    console.log("ejecutando Get Single Week de IW47Report");
+
+    const hoy = new Date();
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    let numeroDeSemana;
+
+    console.log("Número de día (1 - 7): ", hoy.getDay());
+    if (hoy.getDay() === 1) {
+        numeroDeSemana = getWeekNumber(hoy) - 1;
+        if (numeroDeSemana === 0) {
+            numeroDeSemana = 1;
+        }
+    } else {
+        numeroDeSemana = getWeekNumber(hoy);
+    }
+
+    console.log("Numero de semana IW47: ", numeroDeSemana);
+
+    try {
+
+        res.setHeader('Content-Type', 'application/json');
+
+        res.write('[');
+
+        let isFirst = true;
+
+        const cursor = iw47reportmodel.find({
+            "Semana": numeroDeSemana.toString()
+        })
+            .lean()
+            .cursor();
+
+        cursor.on('data', (item) => {
+            if (!isFirst) {
+                res.write(',');
+            } else {
+                isFirst = false;
+            }
+            res.write(JSON.stringify(item));
+        });
+
+        cursor.on('end', () => {
+            res.write(']');
+            res.end();
+            console.log("Finalizado");
+        });
+
+        cursor.on('error', (error) => {
+            console.error('Error al leer los datos:', error);
+            res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+        });
+
+    } catch (error) {
+        console.error('Error al leer los datos:', error);
+        res.status(500).json({ error: 'Ocurrió un error al leer los datos.' });
+    }
+}
+
+//---------------------------------------------------------
+
+const updatetempReportIndicadores = async (req, res) => {
+    console.log("Actualización de objetos");
+
+
+    const numeroDeSemana = "52";
+
+    try {
+        const data = await iw47reportmodel.updateMany(
+            { Semana: "0" },
             { $set: { Semana: numeroDeSemana } }
         );
-        res.status(200).json({ Message: "Oki doki de indicadores", semana: numeroDeSemana })
+        res.status(200).json({ Message: "Oki doki de indicadores iw47reportmodel", semana: numeroDeSemana })
         console.log("Objetos actualizados");
     } catch (error) {
         res.status(500).json({ Message: "Error al actualizar los indicadores", error: error.message })
@@ -1649,7 +2112,7 @@ const updatetempReportIndicadores = async (req, res) => {
 
 const TemporalEliminarSemana = async (req, res) => {
 
-    console.log("Borrando datos filtrados");
+    console.log("Borrando datos de la semana ", req.query.Mes);
     console.log(req.query.Mes);
 
 
@@ -1658,9 +2121,11 @@ const TemporalEliminarSemana = async (req, res) => {
         // iw37nbasemodel
         // iw37nreportmodel
         // iw39reportmodel
+        //iw29reportmodel
 
         await iw37nbasemodel.deleteMany({
-            Semana: { $gte: req.query.Mes },
+            Semana: req.query.Mes,
+            Material: { $exists: true }
         });
 
         console.log("Ok");
@@ -1671,6 +2136,70 @@ const TemporalEliminarSemana = async (req, res) => {
     }
 
 }
+
+
+const normalizardatos = async (req, res) => {
+    console.log("Normalizando datos ");
+    try {
+        const data = await iw47reportmodel.updateMany(
+            { Semana: { $exists: true } }, // Filtra documentos donde exista el campo Semana
+            [
+                {
+                    $set: {
+                        Semana: { $toString: "$Semana" } // Convierte el valor a String
+                    }
+                }
+            ]
+        );
+        console.log("Datos normalizados");
+
+        res.status(200).json({ message: 'Datos Actualizados en la base de datos' });
+    } catch (error) {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    }
+}
+
+const NormalizarObjectToString = async (req, res) => {
+
+    console.log("ACtualizando el tipo de datos");
+
+    try {
+        const data = await iw37nreportmodel.find({
+            _id: "67067b5f4df1ddb80e502016",
+            "Op": { $exists: true, $type: "object" }
+        })
+
+        console.log(data);
+
+        for (const doc of data) {
+            if (doc.Op && doc.Op[""]) {
+                const newValue = doc.Op[""]
+                console.log("nuevo valor: ", newValue);
+
+                await iw37nreportmodel.updateOne(
+                    { _id: doc._id },
+                    {
+                        $set: { "tempField": newValue },
+                        $unset: { Op: "" }
+                    }
+                )
+
+                await iw37nreportmodel.updateOne(
+                    { _id: doc._id },
+                    {
+                        $rename: { "tempField": "Op." }
+                    }
+                )
+            }
+        }
+        res.status(200).json({ message: "Datos actualizados" })
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+
 
 
 //Inducción Parada de Planta
@@ -2240,6 +2769,107 @@ const UpdateDataPartidasProvisiones = async (req, res) => {
         })
 }
 
+
+//Logistica Materiales
+
+const DeleteAllMaterial = async (req, res) => {
+    console.log("Borrando todos los datos de materiales");
+    try {
+
+        const DeleteAll =
+            async () => {
+                await Promise.all([
+                    IH09Model.deleteMany({}),
+                    MB52Model.deleteMany({}),
+                    MCBAModel.deleteMany({}),
+                    ME2LModel.deleteMany({}),
+                    ME5A1Model.deleteMany({}),
+                    ME5A2Model.deleteMany({}),
+                    ZMM003JP11Model.deleteMany({}),
+                    ZMM003JP14Model.deleteMany({})
+                ])
+            }
+
+        await DeleteAll()
+        console.log('Todos los datos Borrados de la base de datos');
+        res.status(200).json({ message: 'Datos Borrados de la base de datos' });
+    } catch (error) {
+        console.error('Error al borrar los datos:', error);
+        res.status(500).json({ error: 'Error al borrar los datos' });
+    }
+}
+
+const GetAllMaterial = async (req, res) => {
+    console.log("Ejecutando Get all Data de Materiales");
+    try {
+        const GetAll =
+            async () => {
+                const [
+                    IH09,
+                    MB52,
+                    MCBA,
+                    ME2L,
+                    ME5A1,
+                    ME5A2,
+                    ZMM003JP11,
+                    ZMM003JP14
+                ] = await Promise.all([
+                    IH09Model.find({}),
+                    MB52Model.find({}),
+                    MCBAModel.find({}),
+                    ME2LModel.find({}),
+                    ME5A1Model.find({}),
+                    ME5A2Model.find({}),
+                    ZMM003JP11Model.find({}),
+                    ZMM003JP14Model.find({})
+                ])
+
+                return{
+                    IH09,
+                    MB52,
+                    MCBA,
+                    ME2L,
+                    ME5A1,
+                    ME5A2,
+                    ZMM003JP11,
+                    ZMM003JP14
+                }
+            }
+
+        const data = await GetAll()
+
+        res.status(200).json({ Message: "Oki Doki", data })
+    } catch (error) {
+        res.status(500).json({ Message: error })
+    }
+}
+
+const LoadLogistica = async (req, res) => {
+    console.log("Cargando datos de TAG y Materiales");
+
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    try {
+        const savedData = await Promise.all(
+            excelData.map(async (rowData) => {
+                const data = new LogisticaModel(rowData);
+                await data.save();
+                return data;
+            })
+        );
+
+        console.log('Todos los datos guardados en la base de datos');
+        res.status(200).json({ message: 'Datos guardados en la base de datos', datos: savedData });
+    } catch (error) {
+        console.error('Error al guardar los datos:', error);
+        res.status(500).json({ error: 'Error al guardar los datos' });
+    }
+}
+
+
 module.exports = {
     LoadHabitaciones,
     GetAllDataHabitaciones,
@@ -2266,6 +2896,7 @@ module.exports = {
 
     getscheduledata,
     GetThirdParty,
+    GetEspecialidad,
     deleteschedule,
     deletehistorydata,
     statusupdate,
@@ -2301,6 +2932,7 @@ module.exports = {
     uploadexceliw37nreport,
     uploadexceliw39report,
     uploadexceliw29report,
+    uploadexceliw47report,
     uploadexcelroster,
 
     deleteallIndicadores,
@@ -2308,13 +2940,23 @@ module.exports = {
     deleteallIw37nreport,
     deleteallIW39,
     DeleteDataIW37nBase,
+    deleteallIW47,
 
     getalldataIndicadores,
     getalldataIW37nBase,
     getalldataIW37nReport,
     getalldataIW39Report,
     getalldataIW29Report,
+    getalldataIW47Report,
     TemporalEliminarSemana,
+
+    GetSingleWeekIW37nBase,
+    GetSingleWeekIW37nReport,
+    GetSingleWeekIW39Report,
+    GetSingleWeekIW29Report,
+    GetSingleWeekIW47Report,
+    normalizardatos,
+    NormalizarObjectToString,
 
     pruebacronologica,
     prueba,
@@ -2328,5 +2970,9 @@ module.exports = {
     LoadProvisionesTemp,
     LoadDataFinanzas,
     UpdateDataCompromisos,
-    UpdateDataPartidasProvisiones
+    UpdateDataPartidasProvisiones,
+
+    DeleteAllMaterial,
+    GetAllMaterial,
+    LoadLogistica
 }

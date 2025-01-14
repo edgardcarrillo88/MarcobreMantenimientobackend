@@ -54,6 +54,7 @@ datarouter.post('/deleteschedulehistorydata',datacontroller.deletehistorydata)
 
 datarouter.get('/filters',datacontroller.getfiltersdata)
 datarouter.get('/thirdparty',datacontroller.GetThirdParty)
+datarouter.get('/especialidad',datacontroller.GetEspecialidad)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
 datarouter.get('/filtereddata',datacontroller.filtereddata)
 datarouter.put('/updatedata',datacontroller.updatedata)
@@ -96,15 +97,33 @@ datarouter.post('/deleteIW37nBase',datacontroller.deleteallIW37nBase)
 datarouter.post('/deleteindIW37Report',datacontroller.deleteallIw37nreport)
 datarouter.post('/deleteindIW39Report',datacontroller.deleteallIW39)
 datarouter.post('/deleteIW37nBaseSemana',datacontroller.DeleteDataIW37nBase)
+datarouter.post('/deleteindIW47Report',datacontroller.deleteallIW47)
 
 datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
 datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
 datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)
 datarouter.get('/getalldataIW29Report',datacontroller.getalldataIW29Report)
+datarouter.get('/getalldataIW47Report',datacontroller.getalldataIW47Report)
+
+
+datarouter.get('/getsingleweekdataIW37nBase',datacontroller.GetSingleWeekIW37nBase)
+datarouter.get('/getsingleweekdataIW37Report',datacontroller.GetSingleWeekIW37nReport)
+datarouter.get('/getsingleweekdataIW39Report',datacontroller.GetSingleWeekIW39Report)
+datarouter.get('/getsingleweekdataIW29Report',datacontroller.GetSingleWeekIW29Report)
+datarouter.get('/getsingleweekdataIW47Report',datacontroller.GetSingleWeekIW47Report)
+
+datarouter.get('/normalizardatos',datacontroller.normalizardatos)
+datarouter.post('/normalizarobjectos',datacontroller.NormalizarObjectToString)
 
 datarouter.post('/temporalactualizacionsemanasindicadores',datacontroller.updatetempReportIndicadores)
 datarouter.post('/temporaleleiminarsemana',datacontroller.TemporalEliminarSemana)
+
+
+//Logistica Status de Materiales
+datarouter.post('/deletematerial',datacontroller.DeleteAllMaterial)
+datarouter.get('/getallmaterial',datacontroller.GetAllMaterial)
+
 
 
 
