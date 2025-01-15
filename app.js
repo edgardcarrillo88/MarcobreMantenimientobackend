@@ -18,7 +18,7 @@ dbconnect(app)
 
 app.use(cors({
   // origin: [process.env.URL_PAGE, "http://localhost:3001","*",process.env.URL_PAGE_2],
-  origin: ["*"],
+  origin: "*",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   }));
   
