@@ -14,6 +14,7 @@ const updatemodel = require('../models/updates')
 const Induccionmodel = require('../models/induccionPdP')
 const PersonalContratistamodel = require('../models/personalcontratistas')
 const EvaluacionPdPmodel = require('../models/evaluacionpdp')
+const UserModel = require('../models/ParadaPlanta/users/users')
 
 const HabitacionesModel = require("../models/ParadaPlanta/Habilitaciones/Habitaciones")
 
@@ -65,8 +66,6 @@ const ME5A2Model = require('../models/Logistica/ME5A2')
 const ZMM003JP11Model = require('../models/Logistica/ZMM003JP11')
 const ZMM003JP14Model = require('../models/Logistica/ZMM003JP14');
 const LogisticaModel = require('../models/Logistica/TAGMaterial')
-
-
 
 
 
@@ -159,23 +158,23 @@ const GetThirdParty = async (req, res) => {
     }
 }
 
-const GetEspecialidad = async (req,res) =>{
-console.log("Ejecutando obtener especialidades");
-try {
-    const response = await taskmodel.distinct('especialidad');
-    const Especialidades = response.map((item, index) => (
-        {
-            uid: item,
-            name: item,
-        }
-    ))
-    console.log("Respuesta exitosa");
-    res.status(200).json({ Especialidades });
-} catch (error) {
-    console.log("Error en la ejecución");
-    console.log(error);
-    res.status(500).json({ error: 'Error al obtener las especialidades' });
-}
+const GetEspecialidad = async (req, res) => {
+    console.log("Ejecutando obtener especialidades");
+    try {
+        const response = await taskmodel.distinct('especialidad');
+        const Especialidades = response.map((item, index) => (
+            {
+                uid: item,
+                name: item,
+            }
+        ))
+        console.log("Respuesta exitosa");
+        res.status(200).json({ Especialidades });
+    } catch (error) {
+        console.log("Error en la ejecución");
+        console.log(error);
+        res.status(500).json({ error: 'Error al obtener las especialidades' });
+    }
 }
 
 const getscheduledata = async (req, res) => {
@@ -476,6 +475,27 @@ const TemporalParadaDePlanta = async (req, res) => {
         console.log("Ok");
         res.status(200).send('Datos eliminados');
 
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+const UserValidation = async (req, res) => {
+    console.log("Validando usuario para ingreso a rutas");
+
+    const user = req.query.user;
+
+    try {
+        const response = await UserModel.find({ correo: user });
+
+        if (response[0].correo) {
+            res.status(200).json({ response });
+            console.log("Usuario encontrado");
+        } else {
+            res.status(500).json({ message: "No se encuentra el usuario" });
+            console.log("Usuario no encontrado");
+        }
     } catch (error) {
         console.log(error);
     }
@@ -1767,7 +1787,7 @@ const GetSingleWeekIW37nBase = async (req, res) => {
     console.log("Número de día (1 - 7): ", hoy.getDay());
     if (hoy.getDay() === 1) {
         numeroDeSemana = getWeekNumber(hoy) - 1;
-        if  (numeroDeSemana === 0) {
+        if (numeroDeSemana === 0) {
             numeroDeSemana = 1;
         }
     } else {
@@ -1836,7 +1856,7 @@ const GetSingleWeekIW37nReport = async (req, res) => {
     console.log("Número de día (1 - 7): ", hoy.getDay());
     if (hoy.getDay() === 1) {
         numeroDeSemana = getWeekNumber(hoy) - 1;
-        if  (numeroDeSemana === 0) {
+        if (numeroDeSemana === 0) {
             numeroDeSemana = 1;
         }
     } else {
@@ -2336,29 +2356,26 @@ const ObtenerDatosEvaluacionPdP = async (req, res) => {
 
 //Reporte Backlog
 
-const CrearPreAviso = async (req, res) => {
-    console.log("Creando pre aviso");
+// const CrearPreAviso = async (req, res) => {
+
+//     try {
+//         const data = await EquiposPlantareportmodel.deleteMany({});
+//         console.log("Todo OK");
+//         res.status(200).json({ message: "Todo Ok" })
+//     } catch (error) {
+//         console.log("Error");
+//         res.status(500).json({ message: "Nada Ok" })
+//     }
+// }
+
+const GuardarDatosPreAvisos = async (req, res) => {
+
     console.log(req.body);
+    req.body.ArrayMateriales = JSON.parse(req.body.ArrayMateriales);
 
     try {
-        const data = new Backlogreportmodel(
-            req.body
-        );
 
-        await data.save();
-        console.log("Todo OK");
-        res.status(200).json({ message: "Todo Ok" })
-    } catch (error) {
-        console.log("Error");
-        res.status(500).json({ message: "Nada Ok" })
-    }
-}
-
-const GuardarImagenPreAviso = async (req, res) => {
-
-    try {
-        const file = req.file;
-        console.log(file)
+        console.log("Ejecutando carga de información de pre-aviso");
 
         const endpoint = 'https://nyc3.digitaloceanspaces.com'
 
@@ -2373,24 +2390,198 @@ const GuardarImagenPreAviso = async (req, res) => {
             }
         })
 
-        const fileextension = file.originalname.split(".").pop()
-        console.log(`${uuidv4()}.${fileextension}`);
 
-        const bucketparams = {
-            Bucket: 'mantenimientomarcobre',
-            Key: `${uuidv4()}.${fileextension}`,
-            Body: file.buffer,
-            ACL: 'public-read',
+        const uploadedFiles = [];
+        const folderName = "preavisos";
+
+        console.log(req.files.file);
+
+        for (const file of req.files.file) {
+            const fileExtension = file.name.split(".").pop();
+            const fileName = `${uuidv4()}.${fileExtension}`;
+            const filePath = `${folderName}/${fileName}`;
+
+            const bucketParams = {
+                Bucket: "mantenimientomarcobre",
+                // Key: fileName,
+                Key: filePath,
+                Body: file.buffer,
+                ACL: "public-read",
+            };
+
+            await s3Client.send(new PutObjectCommand(bucketParams));
+
+            const fileUrl = `${process.env.DIGITAL_OCEAN_PUBLIC_URL}/${fileName}`;
+            uploadedFiles.push({
+                name: file.name,
+                lastModified: file.lastModified,
+                lastModifiedDate: file.lastModifiedDate,
+                webkitRelativePath: fileUrl,
+                size: file.size,
+                type: file.type
+            });
         }
 
-        const result = await s3Client.send(new PutObjectCommand(bucketparams))
+        console.log(uploadedFiles);
+        req.body.FilesData = uploadedFiles
 
-        res.status(200).json({ Message: "Oki doki" })
+        const data = new Backlogreportmodel(
+            req.body
+        );
+
+
+        await data.save();
+
+        res.status(200).json({ message: "Archivos subidos correctamente", files: uploadedFiles })
+        console.log("Carga realizada");
     } catch (error) {
         console.log(error);
         res.status(500).json({ Message: error })
     }
 
+}
+
+const GetAllDataBacklog = async (req, res) => {
+    console.log("Ejecutando carga de información de pre-aviso");
+    try {
+        const response = await Backlogreportmodel.find({})
+        res.status(200).json({ Message: "Todo Oki doki", data: response })
+    } catch (error) {
+
+    }
+}
+
+const GetSingleAviso = async (req, res) => {
+
+    console.log("Ejecutando carga de información de pre-aviso");
+    const id = req.query.id
+    console.log(id);
+    try {
+        const response = await Backlogreportmodel.findById(id)
+        console.log("Respuesta exitosa");
+        res.status(200).json({ Message: "Todo Oki doki", data: response })
+    } catch (error) {
+        console.log("Error en la petición");
+        console.log(error);
+    }
+}
+
+const UpdateAviso = async (req, res) => {
+    console.log("Actualizando datos de pre-avisos");
+
+    console.log(req.body);
+    console.log(req.files);
+
+    try {
+        const { _id, ...updateFields } = req.body;
+        let uploadedFiles = [];
+
+        const response = await Backlogreportmodel.findById(_id);
+        console.log("respuesta file data: ",response.FilesData);
+
+        // [
+        //     {
+        //       name: 'Cumplimiento de KPIs Mantenimiento Planta SEM05.pdf',
+        //       lastModified: 2025-02-04T18:17:00.153Z,
+        //       lastModifiedDate: 2025-02-04T18:17:00.153Z,
+        //       webkitRelativePath: 'https://mantenimientomarcobre.nyc3.digitaloceanspaces.com/preavisos/0c8f9adb-81ea-46db-b051-e061d178cbf4.pdf',
+        //       size: 1055511,
+        //       type: 'application/pdf',
+        //       _id: new ObjectId('67a2599d78b95fc7580f399a')
+        //     }
+        //   ]
+
+        if(response.FilesData.length > 0) {
+            uploadedFiles = response.FilesData
+        }
+
+        const endpoint = 'https://nyc3.digitaloceanspaces.com'
+
+        const s3Client = new S3({
+            forcePathStyle: false,
+            endpoint: endpoint,
+            region: 'us-east-1',
+            credentials: {
+                accessKeyId: process.env.DIGITAL_OCEAN_ACCESS_KEY,
+                secretAccessKey: process.env.DIGITAL_OCEAN_SECRET_KEY
+            }
+        })
+
+        
+        const folderName = "preavisos";
+
+        if (req.files?.file && req.files.file.length > 0) {
+            for (const file of req.files.file) {
+                const fileExtension = file.name.split(".").pop();
+                const fileName = `${uuidv4()}.${fileExtension}`;
+                const filePath = `${folderName}/${fileName}`;
+
+                const bucketParams = {
+                    Bucket: "mantenimientomarcobre",
+                    // Key: fileName,
+                    Key: filePath,
+                    Body: file.buffer,
+                    ACL: "public-read",
+                };
+
+                await s3Client.send(new PutObjectCommand(bucketParams));
+
+                const fileUrl = `${process.env.DIGITAL_OCEAN_PUBLIC_URL}/${fileName}`;
+                uploadedFiles.push({
+                    name: file.name,
+                    lastModified: file.lastModified,
+                    lastModifiedDate: file.lastModifiedDate,
+                    webkitRelativePath: fileUrl,
+                    size: file.size,
+                    type: file.type
+                });
+            }
+        }
+
+        updateFields.FilesData = uploadedFiles
+
+        console.log(updateFields);
+
+        const updateData = {
+            ...updateFields,
+            TiempoEjecucion: Number(updateFields.TiempoEjecucion),
+            CantidadAndamios: Number(updateFields.CantidadAndamios),
+            CantidadCamionGrua: Number(updateFields.CantidadCamionGrua),
+            CantidadTelescopica: Number(updateFields.CantidadTelescopica),
+            LaborMecanicos: Number(updateFields.LaborMecanicos),
+            LaborSoldadores: Number(updateFields.LaborSoldadores),
+            LaborElectricistas: Number(updateFields.LaborElectricistas),
+            LaborInstrumentistas: Number(updateFields.LaborInstrumentistas),
+            LaborVigias: Number(updateFields.LaborVigias),
+            ToggleAndamios: updateFields.ToggleAndamios === "true",
+            ToggleCamionGrua: updateFields.ToggleCamionGrua === "true",
+            ToggleTelescopica: updateFields.ToggleTelescopica === "true",
+            ToggleServicioEspecializado: updateFields.ToggleServicioEspecializado === "true",
+            ToggleParadaEquipo: updateFields.ToggleParadaEquipo === "true",
+            ToggleParadaNoAplica: updateFields.ToggleParadaNoAplica === "true",
+            ToggleParadaProceso: updateFields.ToggleParadaProceso === "true",
+            ToggleParadaPlanta: updateFields.ToggleParadaPlanta === "true",
+            ToggleMateriales: updateFields.ToggleMateriales === "true",
+            ArrayMateriales: JSON.parse(updateFields.ArrayMateriales || "[]"),
+        };
+
+        const data = await Backlogreportmodel.findByIdAndUpdate(
+            _id,
+            { $set: updateData },
+            { new: true }
+        );
+        if (!data) {
+            console.log("no se encontró el pre-aviso");
+            return res.status(404).json({ Message: "No se encontró el aviso" });
+        }
+        console.log("Pre-Aviso actualizado con éxito");
+        res.status(200).json({ Message: "Todo Oki doki" })
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ Message: "Error al actualizar el aviso", error });
+        console.log("error al actualizar el pre-aviso");
+    }
 }
 
 
@@ -2410,7 +2601,7 @@ const Temporal = async (req, res) => {
 
             console.log("cargando datos");
             // const data = new EquiposPlantareportmodel(rowData);
-            const data = new NCRReportModel(rowData)
+            const data = new EquiposPlantareportmodel(rowData)
             await data.save();
 
         } catch (error) {
@@ -2432,8 +2623,9 @@ const Temporal = async (req, res) => {
 
 const GetEquiposPlanta = async (refq, res) => {
     console.log("ejecutando get all data de Equipos Planta");
-    const data = await EquiposPlantareportmodel.find({})
-    res.status(200).json(data)
+    const data = await EquiposPlantareportmodel.distinct("TAG")
+    const tagsWithKey = data.map(tag => ({ TAG: tag }));
+    res.status(200).json(tagsWithKey)
 }
 
 const getalldataandamios = async (req, res) => {
@@ -2824,7 +3016,7 @@ const GetAllMaterial = async (req, res) => {
                     ZMM003JP14Model.find({})
                 ])
 
-                return{
+                return {
                     IH09,
                     MB52,
                     MCBA,
@@ -2882,8 +3074,9 @@ module.exports = {
     getsingledata,
     getfiltersdata,
 
-    CrearPreAviso,
-    GuardarImagenPreAviso,
+
+    GuardarDatosPreAvisos,
+    GetAllDataBacklog,
 
     getalldataandamios,
     RegistrarAndamios,
@@ -2911,6 +3104,7 @@ module.exports = {
     UpdateValidation,
     UpdateBaseLine,
     DeleteActivities,
+    UserValidation,
 
     RegistroInduccion,
     ObtenerRegistroInduccion,
@@ -2974,5 +3168,8 @@ module.exports = {
 
     DeleteAllMaterial,
     GetAllMaterial,
-    LoadLogistica
+    LoadLogistica,
+    UpdateAviso,
+    GetSingleAviso
+    // CrearPreAviso
 }

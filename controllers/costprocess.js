@@ -369,9 +369,8 @@ const ArreglandoCojudecesQueHice = async (req, res) => {
   console.log("Corrienda la cojudeces esta");
 
   try {
-    const update = await actualPlantamodel.updateMany(
-      { "Planta": "Gerencia de Mantenimiento" },
-      { $set: { "Planta": "Gerencia Mantenimiento" } }
+    const update = await actualPlantamodel.deleteMany(
+      { "PptoForecast": "Q0" }
     )
     res.status(200).json(update);
   } catch (error) {

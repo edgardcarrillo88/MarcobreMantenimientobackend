@@ -2,7 +2,8 @@ const express = require('express');
 const datarouter = express.Router()
 const datacontroller = require('../controllers/dataprocess');
 const controllerprueba = require('../controllers/message');
-const upload = require('../middleware/fileprocess');
+const uploadfile = require('../middleware/fileprocess');
+const {upload, processFiles} = require('../middleware/multifileprocess');
 const UploadExcel =  require('../middleware/excelprocess')
 const uploadMiddleware = require('../middleware/dailyprocess');
 const uploadMiddlewarePolines = require('../middleware/polinesprocess');
@@ -14,7 +15,7 @@ datarouter.get('/getdataequiposplanta',datacontroller.GetEquiposPlanta)
 
 
 //Reporte rápido de Falla
-datarouter.post('/registerform',upload.array('files'),datacontroller.registerform)
+datarouter.post('/registerform',uploadfile.array('files'),datacontroller.registerform)
 datarouter.get('/getalldata',datacontroller.getalldata)
 datarouter.get('/getsingledata',datacontroller.getsingledata)
 
@@ -33,8 +34,12 @@ datarouter.get('/getsingledataandamios',datacontroller.GetSingleDataAndamios)
 
 
 //Reporte Backlog
-datarouter.post('/crearpreaviso',datacontroller.CrearPreAviso)
-datarouter.post('/uploadimagebacklog',UploadExcel.single('file'),datacontroller.GuardarImagenPreAviso)
+// datarouter.post('/crearpreaviso',datacontroller.CrearPreAviso)
+// datarouter.post('/uploadimagebacklog',UploadExcel.single('file'),datacontroller.GuardarImagenPreAviso)
+datarouter.post('/uploadimagebacklog',upload, processFiles,datacontroller.GuardarDatosPreAvisos)
+datarouter.get('/getalldataBacklog',datacontroller.GetAllDataBacklog)
+datarouter.get('/getsingleavisos',datacontroller.GetSingleAviso)
+datarouter.post('/updateaviso',upload, processFiles, datacontroller.UpdateAviso)
 
 
 //Gestión de NCR
@@ -71,6 +76,7 @@ datarouter.get('/obtenerdatosevaluacion',datacontroller.ObtenerDatosEvaluacionPd
 datarouter.post('/temporalparadadeplanta',datacontroller.TemporalParadaDePlanta)
 
 datarouter.get('/getalldatahabitaciones',datacontroller.GetAllDataHabitaciones)
+datarouter.get('/validateusers',datacontroller.UserValidation)
 
 
 

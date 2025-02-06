@@ -1,10 +1,18 @@
 const mongoose = require('mongoose')
 
 const equiposplantaschema = mongoose.Schema({
-    Planta: String,
-    Area: String,
+    Equipo: String,
+    Denominacion: String,
+    CentroPlanificacion: String,
+    TipoEquipo: String,
+    IndicadorABC: String,
     TAG: String,
-    DescripcionEquipo: String,
+    CentroCosto: String,
+    Planta: String,
+    UT: String,
+    GrupoPlanificacion: String,
+    GrupoAutorizacion: String,
+    DenominacionUT: String,
 
     deleted: { type: Boolean, default: false }
 },
