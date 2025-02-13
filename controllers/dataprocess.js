@@ -2307,8 +2307,8 @@ const ObtenerRegistroContratistas = async (req, res) => {
 const EvaluacionPdP = async (req, res) => {
     console.log("Guardando respuesta de evaluación");
     console.log(req.body);
-    const DNI = req.body.answers.DNI
-    const apiUrl = `${process.env.API_URL}${DNI}`
+    // const DNI = req.body.answers.DNI
+    // const apiUrl = `${process.env.API_URL}${DNI}`
 
     try {
 
@@ -2334,7 +2334,8 @@ const EvaluacionPdP = async (req, res) => {
 
 
         await data.save();
-        res.status(200).json({ message: "Datos guardados de manera satisfactoria", Informacion: req.body.answers.Nombre })
+        // res.status(200).json({ message: "Datos guardados de manera satisfactoria", Informacion: req.body.answers.Nombre })
+        res.status(200).json({ message: "Datos guardados de manera satisfactoria"})
         console.log("Correcto");
     } catch (error) {
         console.log(error);
