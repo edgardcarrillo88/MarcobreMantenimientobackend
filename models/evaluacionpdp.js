@@ -16,6 +16,8 @@ const evaluacionschema = mongoose.Schema({
         DNI: String,
         Fecha: String,
         Nombre:String,
+        Cargo: String,
+        Empresa: String,
     },
     Nota: Number,
 

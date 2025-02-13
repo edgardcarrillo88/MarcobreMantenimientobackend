@@ -2328,8 +2328,8 @@ const EvaluacionPdP = async (req, res) => {
         // }
 
         const data = new EvaluacionPdPmodel({
-            answer: req.body.answers,
-            Nota: req.body.score,
+            answer: req.body.data.answer,
+            Nota: req.body.data.Nota,
         });
 
 
