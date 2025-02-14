@@ -2336,7 +2336,7 @@ const EvaluacionPdP = async (req, res) => {
         await data.save();
         // res.status(200).json({ message: "Datos guardados de manera satisfactoria", Informacion: req.body.answers.Nombre })
         res.status(200).json({ message: "Datos guardados de manera satisfactoria"})
-        console.log("Correcto");
+        console.log("Correcto!");
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "error al guardar la información" })

@@ -54,6 +54,7 @@ const backlogschema = new mongoose.Schema({
     ToggleTelescopica: { type: Boolean, required: true },
     ToggleServicioEspecializado: { type: Boolean, required: true },
     
+    CantidadAndamios: { type: Number, required: false },
     CantidadCamionGrua: { type: Number, required: false },
     CantidadTelescopica: { type: Number, required: false },
     ServicioEspecializado: { type: String, required: false },
