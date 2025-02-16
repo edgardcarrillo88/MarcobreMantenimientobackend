@@ -12,6 +12,11 @@ const budgetPlantamodel = require("../models/budgetplanta");
 //Modelo Provisiones
 const ProvisionesModel = require("../models/Provisiones")
 
+//Modelo Compromisos
+const spcompromisosModel = require("../models/v1/costos/compromisos/spcompromisos")
+const occompromisosModel = require("../models/v1/costos/compromisos/occompromisos")
+const partidasModel = require("../models/v1/costos/compromisos/partidas")
+
 
 const mongoose = require("mongoose");
 const { promises } = require("dns");
@@ -369,8 +374,8 @@ const ArreglandoCojudecesQueHice = async (req, res) => {
   console.log("Corrienda la cojudeces esta");
 
   try {
-    const update = await actualPlantamodel.deleteMany(
-      { "PptoForecast": "Q0" }
+    const update = await occompromisosModel.deleteMany(
+      // { "PptoForecast": "Q0" }
     )
     res.status(200).json(update);
   } catch (error) {
@@ -430,7 +435,7 @@ const UpdateGroupMonth = async (req, res) => {
   })
 
 
-  if (FilterValue.length>0) {
+  if (FilterValue.length > 0) {
     console.log("No se pueden actualizar datos reales");
     return res
       .status(202)
@@ -660,6 +665,191 @@ const UpdateStatusProvisiones = async (req, res) => {
 
 }
 
+//Compromisos Partidas
+
+const LoadSpCompromisos = async (req, res) => {
+  console.log("Cargando información de SPs comprometidas");
+  const bufferData = req.file.buffer;
+  const workbook = xlsx.read(bufferData, { type: "buffer" });
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+  const dataPromises = excelData.map(async (rowData) => {
+    try {
+      const fechainicio = new Date((rowData.Fecha - 25569) * 86400 * 1000);
+      fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
+      rowData.Fecha = fechainicio;
+
+      const data = new occompromisosModel(rowData);
+      await data.save();
+
+    } catch (error) {
+      console.error('Error al guardar el dato:', error);
+    }
+  });
+  Promise.all(dataPromises)
+    .then(() => {
+      console.log('Todos los datos guardados en la base de datos');
+      res.status(200).json({ message: 'Datos guardados en la base de datos' });
+    })
+    .catch((error) => {
+      console.error('Error al guardar los datos:', error);
+      res.status(500).json({ error: 'Error al guardar los datos' });
+    })
+
+}
+const GetAllSPCompromisos = async (req, res) => {
+  console.log("Ejecutando Get data compromisos");
+  try {
+    const response = await spcompromisosModel.find({});
+    res.status(200).json({ response });
+  } catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+  }
+}
+
+const GetAllOCCompromisos = async (req, res) => {
+  console.log("Ejecutando Get data compromisos");
+  try {
+    const response = await occompromisosModel.find({});
+    res.status(200).json({ response });
+  } catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+  }
+}
+
+const GetAllPartidasCompromisos = async (req, res) => {
+  console.log("Ejecutando Get data compromisos");
+  try {
+    const response = await partidasModel.find({});
+    res.status(200).json({ response });
+  } catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+  }
+}
+
+const ProcessCompromisosData = async (req, res) => {
+  console.log("Ejecutando Get data compromisos");
+  try {
+
+    const data = await partidasModel.aggregate([
+      {
+        $group: {
+          _id: {
+            partida: "$Partida",
+            // descripcionPartida: "$DescripcionPartida",
+            // especialidad: "$Especialidad",
+          },
+          descripcionPartida: { $first: "$DescripcionPartida" },
+          especialidad: { $first: "$Especialidad" },
+          monto: { $sum: "$Monto" }
+        }
+      },
+
+
+      {
+        $lookup: {
+          from: "spcompromisos",
+          // localField: "_id.partida",
+          // foreignField: "Partida",
+          let: { partidaIdSP: "$_id.partida" },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { $eq: ["$Partida", "$$partidaIdSP"] } },
+            },
+            { 
+              $match: {
+                IndicadorBorrado: "false",
+                Concluida: { $ne: "X" },
+                Periodo: 2025,
+                Forecast: "Q0"
+              }
+            }
+          ],
+          as: "spData",
+        }
+      },
+      {
+        $addFields: {
+          totalSP: {
+            $ifNull: [
+              { $sum: "$spData.Monto" },
+              0
+            ]
+          }
+        }
+      },
+
+      {
+        $lookup: {
+          from: "occompromisos",
+          // localField: "_id.partida",
+          // foreignField: "Partida",
+          let: { partidaId: "$_id.partida" },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { $eq: ["$Partida", "$$partidaId"] } },
+            },
+            { 
+              $match: {
+                IndicadorBorrado: { $nin: ["L", "S"] }, 
+                Periodo: 2025,
+                Forecast: "Q0"
+              }
+            }
+          ],
+          as: "ocData",
+        }
+      },
+      {
+        $addFields: {
+          totalOC: {
+            $ifNull: [
+              { $sum: "$ocData.Monto" },
+              0
+            ]
+          }
+        }
+      },
+
+
+      {
+        $addFields: {
+          totalCompromiso: { $add: ["$totalSP", "$totalOC"] },
+          saldo: { $subtract: ["$monto", { $add: ["$totalSP", "$totalOC"] }] },
+        }
+      },
+
+      {
+        $project: {
+          _id: 0,
+          partida: "$_id.partida",
+          descripcionPartida: 1,
+          especialidad: 1,
+          monto: 1,
+          totalSP: 1,
+          totalOC: 1,
+          totalCompromiso: { $ifNull: ["$totalCompromiso", 0] },
+          saldo: { $ifNull: ["$saldo", 0] }
+        }
+      }
+
+
+    ])
+
+    console.log(data.filter((item) => item.partida === "MPLT-207"));
+
+    res.status(200).json({ data });
+  } catch (error) {
+    console.log("Error en la ejecución");
+    console.log(error);
+  }
+}
 
 module.exports = {
   uploadexcel,
@@ -687,5 +877,11 @@ module.exports = {
   GetAllDataProvisionesForPowerBI,
   GetAllDataProvisionesContratistas,
   UpdateStatusProvisiones,
-  borrandoDatosProvAntFiltrado
+  borrandoDatosProvAntFiltrado,
+
+  LoadSpCompromisos,
+  GetAllSPCompromisos,
+  GetAllOCCompromisos,
+  GetAllPartidasCompromisos,
+  ProcessCompromisosData
 };

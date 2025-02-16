@@ -40,6 +40,15 @@ costrouter.get('/GetAllDataProvisionesForPowerBI',costcontroller.GetAllDataProvi
 
 costrouter.post('/updatestatusprovisiones',costcontroller.UpdateStatusProvisiones)
 
+//Compromisos Partidas
+costrouter.post('/loadspcompromisos',Upload.single('file'),costcontroller.LoadSpCompromisos)
+costrouter.get('/getallspcompromisos',Upload.single('file'),costcontroller.GetAllSPCompromisos)
+costrouter.get('/getalloccompromisos',Upload.single('file'),costcontroller.GetAllOCCompromisos)
+costrouter.get('/getallpartidascompromisos',Upload.single('file'),costcontroller.GetAllPartidasCompromisos)
+costrouter.get('/getprocesscompromisosdata',Upload.single('file'),costcontroller.ProcessCompromisosData)
+
+
+
 
 
 

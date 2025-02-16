@@ -74,6 +74,8 @@ const backlogschema = new mongoose.Schema({
     ArrayMateriales: { type: [MaterialesSchema], required: false },
     FilesData: { type: [FilesSchema], required: false },
     Status: { type: String, default: 'Pendiente', required: false },
+    User: { type: String, required: true },
+    email: { type: String, required: true },
 
     deleted: {type: Boolean, default:false}
 },
