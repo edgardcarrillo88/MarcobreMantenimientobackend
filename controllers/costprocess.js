@@ -838,13 +838,24 @@ const ProcessCompromisosData = async (req, res) => {
           saldo: { $ifNull: ["$saldo", 0] }
         }
       }
-
-
     ])
+
+    const dataSP = await spcompromisosModel.find({
+      IndicadorBorrado: "false",
+      Concluida: { $ne: "X" },
+      Periodo: 2025,
+      Forecast: "Q0"
+    })
+
+    const dataOC = await occompromisosModel.find({
+      IndicadorBorrado: { $nin: ["L", "S"] },
+      Periodo: 2025,
+      Forecast: "Q0"
+    })
 
     console.log(data.filter((item) => item.partida === "MPLT-207"));
 
-    res.status(200).json({ data });
+    res.status(200).json({ data, dataSP, dataOC });
   } catch (error) {
     console.log("Error en la ejecución");
     console.log(error);
