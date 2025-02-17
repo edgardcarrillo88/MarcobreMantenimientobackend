@@ -757,11 +757,12 @@ const ProcessCompromisosData = async (req, res) => {
           // foreignField: "Partida",
           let: { partidaIdSP: "$_id.partida" },
           pipeline: [
-            { 
-              $match: { 
-                $expr: { $eq: ["$Partida", "$$partidaIdSP"] } },
+            {
+              $match: {
+                $expr: { $eq: ["$Partida", "$$partidaIdSP"] }
+              },
             },
-            { 
+            {
               $match: {
                 IndicadorBorrado: "false",
                 Concluida: { $ne: "X" },
@@ -791,13 +792,14 @@ const ProcessCompromisosData = async (req, res) => {
           // foreignField: "Partida",
           let: { partidaId: "$_id.partida" },
           pipeline: [
-            { 
-              $match: { 
-                $expr: { $eq: ["$Partida", "$$partidaId"] } },
-            },
-            { 
+            {
               $match: {
-                IndicadorBorrado: { $nin: ["L", "S"] }, 
+                $expr: { $eq: ["$Partida", "$$partidaId"] }
+              },
+            },
+            {
+              $match: {
+                IndicadorBorrado: { $nin: ["L", "S"] },
                 Periodo: 2025,
                 Forecast: "Q0"
               }
@@ -840,18 +842,70 @@ const ProcessCompromisosData = async (req, res) => {
       }
     ])
 
-    const dataSP = await spcompromisosModel.find({
-      IndicadorBorrado: "false",
-      Concluida: { $ne: "X" },
-      Periodo: 2025,
-      Forecast: "Q0"
-    })
+    // const dataSP = await spcompromisosModel.find({
+    //   IndicadorBorrado: "false",
+    //   Concluida: { $ne: "X" },
+    //   Periodo: 2025,
+    //   Forecast: "Q0"
+    // })
 
-    const dataOC = await occompromisosModel.find({
-      IndicadorBorrado: { $nin: ["L", "S"] },
-      Periodo: 2025,
-      Forecast: "Q0"
-    })
+    // const dataOC = await occompromisosModel.find({
+    //   IndicadorBorrado: { $nin: ["L", "S"] },
+    //   Periodo: 2025,
+    //   Forecast: "Q0"
+    // })
+
+    const dataSP = await spcompromisosModel.aggregate([
+      {
+        $match: {
+          IndicadorBorrado: "false",
+          Concluida: { $ne: "X" },
+          Periodo: 2025,
+          Forecast: "Q0",
+        },
+      },
+      {
+        $lookup: {
+          from: "partidascompromisos",  // Nombre de la colección en MongoDB
+          localField: "Partida",        // Campo en `spcompromisosModel`
+          foreignField: "Partida",      // Campo en `partidascompromisos`
+          as: "partidaInfo",
+        },
+      },
+      {
+        $addFields: {
+          Especialidad: { $arrayElemAt: ["$partidaInfo.Especialidad", 0] },
+          DescripcionPartida: { $arrayElemAt: ["$partidaInfo.DescripcionPartida", 0] },
+        },
+      },
+      { $project: { partidaInfo: 0 } }, // Eliminamos la info extra de `lookup`
+    ]);
+
+    const dataOC = await occompromisosModel.aggregate([
+      {
+        $match: {
+          IndicadorBorrado: { $nin: ["L", "S"] },
+          Periodo: 2025,
+          Forecast: "Q0",
+        },
+      },
+      {
+        $lookup: {
+          from: "partidascompromisos",
+          localField: "Partida",
+          foreignField: "Partida",
+          as: "partidaInfo",
+        },
+      },
+      {
+        $addFields: {
+          Especialidad: { $arrayElemAt: ["$partidaInfo.Especialidad", 0] },
+          DescripcionPartida: { $arrayElemAt: ["$partidaInfo.DescripcionPartida", 0] },
+        },
+      },
+      { $project: { partidaInfo: 0 } },
+    ]);
+
 
     console.log(data.filter((item) => item.partida === "MPLT-207"));
 
