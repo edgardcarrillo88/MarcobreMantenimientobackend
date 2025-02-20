@@ -51,11 +51,15 @@ const backlogschema = new mongoose.Schema({
 
     ToggleAndamios: { type: Boolean, required: true },
     ToggleCamionGrua: { type: Boolean, required: true },
+    ToggleManlift: { type: Boolean, required: true },
+    ToggleMontacarga: { type: Boolean, required: true },
     ToggleTelescopica: { type: Boolean, required: true },
     ToggleServicioEspecializado: { type: Boolean, required: true },
     
     CantidadAndamios: { type: Number, required: false },
     CantidadCamionGrua: { type: Number, required: false },
+    CantidadManlift: { type: Number, required: false },
+    CantidadMontacarga: { type: Number, required: false },
     CantidadTelescopica: { type: Number, required: false },
     ServicioEspecializado: { type: String, required: false },
 
@@ -63,6 +67,8 @@ const backlogschema = new mongoose.Schema({
     ToggleParadaNoAplica: { type: Boolean, required: false },
     ToggleParadaProceso: { type: Boolean, required: false },
     ToggleParadaPlanta: { type: Boolean, required: false },
+
+    TiempoParadaEquipo: { type: Number, required: false },
 
     LaborMecanicos: { type: Number, required: true },
     LaborSoldadores: { type: Number, required: true },
