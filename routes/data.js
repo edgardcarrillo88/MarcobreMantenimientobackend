@@ -42,6 +42,12 @@ datarouter.get('/getsingleavisos',datacontroller.GetSingleAviso)
 datarouter.post('/updateaviso',upload, processFiles, datacontroller.UpdateAviso)
 
 
+//Reporte de Inspecciones
+datarouter.post('/crearinpeccion',upload,processFiles,datacontroller.CrearInspeccion)
+datarouter.get('/getalldatainspeccion',datacontroller.GetAllDataInspeccion)
+datarouter.get('/getsingledatainspeccion',datacontroller.GetSingleDataInspeccion)
+
+
 //Gestión de NCR
 datarouter.post('/crearsolicitudncr',datacontroller.CrearNCR)
 datarouter.get('/getalldatancr',datacontroller.GetAllDataNCR)
@@ -123,7 +129,8 @@ datarouter.get('/normalizardatos',datacontroller.normalizardatos)
 datarouter.post('/normalizarobjectos',datacontroller.NormalizarObjectToString)
 
 datarouter.post('/temporalactualizacionsemanasindicadores',datacontroller.updatetempReportIndicadores)
-datarouter.post('/temporaleleiminarsemana',datacontroller.TemporalEliminarSemana)
+datarouter.get('/temporaleleiminarsemana',datacontroller.TemporalEliminarSemana)
+datarouter.get('/pruebaiw29',datacontroller.PruebaIW29)
 
 
 //Logistica Status de Materiales
@@ -135,6 +142,10 @@ datarouter.get('/getallmaterial',datacontroller.GetAllMaterial)
 
 //Envío de mensajes
 datarouter.post('/prueba',controllerprueba.SendMessage)
+
+
+datarouter.post('/loadOTMensual',UploadExcel.single('file'),datacontroller.LoadOTMensual)
+
 
 
 module.exports = datarouter

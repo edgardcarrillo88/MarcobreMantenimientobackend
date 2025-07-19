@@ -214,7 +214,7 @@ const GetAllDataActualForPowerBI = async (req, res) => {
 }
 
 const GetAllDataActualForPowerExcel = async (req, res) => {
-
+  console.log("Cargando datos a excel");
   try {
 
     res.setHeader('Content-Type', 'application/json');
@@ -374,8 +374,9 @@ const ArreglandoCojudecesQueHice = async (req, res) => {
   console.log("Corrienda la cojudeces esta");
 
   try {
-    const update = await occompromisosModel.deleteMany(
-      // { "PptoForecast": "Q0" }
+    //deletemany
+    const update = await actualPlantamodel.deleteMany(
+      { "Mes": 2 }
     )
     res.status(200).json(update);
   } catch (error) {

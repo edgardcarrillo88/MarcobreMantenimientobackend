@@ -26,6 +26,9 @@ const dailyreportmodel = require('../models/dailyreport')
 const polinestagmodel = require('../models/polinestag')
 const polinesreportmodel = require('../models/polinesreport')
 
+//Modelos Repore de Inspecciones
+const inspeccionesmodel = require('../models/v1/reportes/inspecciones/InspeccionesPdP')
+
 //Modelos Indicadores de Mantenimiento
 const baseindicadoresmodel = require('../models/baseindicadores')
 const iw37nbasemodel = require('../models/iw37nbase')
@@ -34,6 +37,7 @@ const iw39reportmodel = require('../models/iw39report')
 const iw29reportmodel = require('../models/iw29report')
 const iw47reportmodel = require('../models/IW47report')
 const RosterModel = require('../models/roster')
+const OTMensualModel = require('../models/Indicadores/iw37nbaseMes')
 
 //Modelos GestionAndamios
 const EquiposPlantareportmodel = require('../models/EquiposPlanta')
@@ -67,6 +71,7 @@ const ZMM003JP11Model = require('../models/Logistica/ZMM003JP11')
 const ZMM003JP14Model = require('../models/Logistica/ZMM003JP14');
 const LogisticaModel = require('../models/Logistica/TAGMaterial')
 
+//
 
 
 //Parada de Planta
@@ -1874,7 +1879,8 @@ const GetSingleWeekIW37nReport = async (req, res) => {
         let isFirst = true;
 
         const cursor = iw37nreportmodel.find({
-            "Semana": numeroDeSemana
+            // "Semana": numeroDeSemana
+            "Semana": "16"
         })
             .lean()
             .cursor();
@@ -2143,13 +2149,24 @@ const TemporalEliminarSemana = async (req, res) => {
         // iw39reportmodel
         //iw29reportmodel
 
-        await iw37nbasemodel.deleteMany({
-            Semana: req.query.Mes,
-            Material: { $exists: true }
+        // await iw39reportmodel.deleteMany({
+        //     Semana: req.query.Mes,
+        //     Material: { $exists: true }
+        // });
+
+        const data = await iw39reportmodel.deleteMany({
+            Semana: "15",
+            anho: "2025"
         });
 
+        const data2 = await iw37nreportmodel.deleteMany({
+            Semana: "15",
+            anho: "2025"
+        });
+
+
         console.log("Ok");
-        res.status(200).send('Todos los datos iw37nbasemodel eliminados correctamente');
+        res.status(200).send('Todos los datos iw39reportmodel eliminados correctamente');
 
     } catch (error) {
         console.log(error);
@@ -2220,6 +2237,25 @@ const NormalizarObjectToString = async (req, res) => {
     }
 }
 
+const PruebaIW29 = async (req, res) => {
+    console.log("Procesando datos iw29");
+    const data = await iw29reportmodel.find(
+        { Semana: "49" },
+    )
+
+    // const data = await iw29reportmodel.find(
+    //     { Orden: "6577870"},
+    // )
+    // const data = await iw37nreportmodel.find(
+    //     { Semana: "2", Anho:"2025" },
+    // )
+    console.log("Realizado");
+    console.log(data.length);
+
+    const data2 = await iw29reportmodel.deleteMany(
+        { Semana: "49" },
+    )
+}
 
 
 //Inducción Parada de Planta
@@ -2335,7 +2371,7 @@ const EvaluacionPdP = async (req, res) => {
 
         await data.save();
         // res.status(200).json({ message: "Datos guardados de manera satisfactoria", Informacion: req.body.answers.Nombre })
-        res.status(200).json({ message: "Datos guardados de manera satisfactoria"})
+        res.status(200).json({ message: "Datos guardados de manera satisfactoria" })
         console.log("Correcto!");
     } catch (error) {
         console.log(error);
@@ -2478,7 +2514,7 @@ const UpdateAviso = async (req, res) => {
         let uploadedFiles = [];
 
         const response = await Backlogreportmodel.findById(_id);
-        console.log("respuesta file data: ",response.FilesData);
+        console.log("respuesta file data: ", response.FilesData);
 
         // [
         //     {
@@ -2492,7 +2528,7 @@ const UpdateAviso = async (req, res) => {
         //     }
         //   ]
 
-        if(response.FilesData.length > 0) {
+        if (response.FilesData.length > 0) {
             uploadedFiles = response.FilesData
         }
 
@@ -2508,7 +2544,7 @@ const UpdateAviso = async (req, res) => {
             }
         })
 
-        
+
         const folderName = "preavisos";
 
         if (req.files?.file && req.files.file.length > 0) {
@@ -3062,8 +3098,131 @@ const LoadLogistica = async (req, res) => {
     }
 }
 
+const LoadOTMensual = async (req, res) => {
+    console.log("Cargando datos de OT Mensual");
+
+    const bufferData = req.file.buffer;
+    const workbook = xlsx.read(bufferData, { type: "buffer" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+    const dataPromises = excelData.map(async (rowData) => {
+
+        try {
+
+            console.log("cargando datos");
+            const data = new OTMensualModel(rowData)
+            await data.save();
+
+        } catch (error) {
+            console.error('Error al guardar el dato:', error);
+        }
+
+    });
+    Promise.all(dataPromises)
+        .then(() => {
+            console.log('Todos los datos guardados en la base de datos');
+            res.status(200).json({ message: 'Datos guardados en la base de datos' });
+        })
+        .catch((error) => {
+            console.error('Error al guardar los datos:', error);
+            res.status(500).json({ error: 'Error al guardar los datos' });
+        })
+
+}
+
+//Reporte de Inspecciones
+
+const CrearInspeccion = async (req, res) => {
+ 
+    console.log("Cargando datos de Inspecciones");
+    console.log(req.body);
+
+    try {
+
+        console.log("Ejecutando carga de información de pre-aviso");
+
+        const endpoint = 'https://nyc3.digitaloceanspaces.com'
+
+
+        const s3Client = new S3({
+            forcePathStyle: false,
+            endpoint: endpoint,
+            region: 'us-east-1',
+            credentials: {
+                accessKeyId: process.env.DIGITAL_OCEAN_ACCESS_KEY,
+                secretAccessKey: process.env.DIGITAL_OCEAN_SECRET_KEY
+            }
+        })
+
+
+        const uploadedFiles = [];
+        const folderName = "InspeccionesPdP";
+
+        console.log(req.files.file);
+
+        for (const file of req.files.file) {
+            const fileExtension = file.name.split(".").pop();
+            const fileName = `${uuidv4()}.${fileExtension}`;
+            const filePath = `${folderName}/${fileName}`;
+
+            const bucketParams = {
+                Bucket: "mantenimientomarcobre",
+                // Key: fileName,
+                Key: filePath,
+                Body: file.buffer,
+                ACL: "public-read",
+            };
+
+            await s3Client.send(new PutObjectCommand(bucketParams));
+
+            const fileUrl = `${process.env.DIGITAL_OCEAN_PUBLIC_URL}/${fileName}`;
+            uploadedFiles.push({
+                name: file.name,
+                lastModified: file.lastModified,
+                lastModifiedDate: file.lastModifiedDate,
+                webkitRelativePath: fileUrl,
+                size: file.size,
+                type: file.type
+            });
+        }
+
+        console.log(uploadedFiles);
+        req.body.FilesData = uploadedFiles
+
+        const data = new inspeccionesmodel(
+            req.body
+        );
+
+
+        await data.save();
+
+        res.status(200).json({ message: "Archivos subidos correctamente", files: uploadedFiles })
+        console.log("Carga realizada");
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ Message: error })
+    }
+
+
+
+}
+
+const GetAllDataInspeccion = async (req, res) => {
+    console.log("Cargando datos de Inspecciones");
+}
+
+const GetSingleDataInspeccion = async (req, res) => {
+    console.log("Cargando datos de Inspecciones");
+}
+
 
 module.exports = {
+
+    CrearInspeccion,
+    GetAllDataInspeccion,
+    GetSingleDataInspeccion,
+
     LoadHabitaciones,
     GetAllDataHabitaciones,
 
@@ -3171,6 +3330,8 @@ module.exports = {
     GetAllMaterial,
     LoadLogistica,
     UpdateAviso,
-    GetSingleAviso
+    GetSingleAviso,
     // CrearPreAviso
+    PruebaIW29,
+    LoadOTMensual
 }

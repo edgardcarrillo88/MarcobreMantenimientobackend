@@ -221,7 +221,7 @@ const updatedata = async (req, res) => {
         }
     }, { new: true })
 
-    const updated = await updatemodel.find({ idtask })
+    const updated = await updatemodel.insertMany({ idtask })
 
     // if (updated) {
     //     await Promise.all(updated.map(async (item) => {
