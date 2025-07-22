@@ -3134,7 +3134,7 @@ const LoadOTMensual = async (req, res) => {
 //Reporte de Inspecciones
 
 const CrearInspeccion = async (req, res) => {
- 
+
     console.log("Cargando datos de Inspecciones");
     console.log(req.body);
 
@@ -3210,6 +3210,34 @@ const CrearInspeccion = async (req, res) => {
 
 const GetAllDataInspeccion = async (req, res) => {
     console.log("Cargando datos de Inspecciones");
+    console.log(req.query);
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.perPage) || 10;
+
+        let query = {
+            deleted: false,
+        };
+
+
+        if (req.query.empresa) {
+            query.empresa = { $regex: req.query.empresa, $options: 'i' }; // 'i' para hacer la búsqueda insensible a mayúsculas y minúsculas
+        }
+
+        console.log("el real query: ", req.query)
+
+        const data = await inspeccionesmodel.paginate(query, { page, limit });
+        console.log("Datos obtenidos: ", data);
+        res.status(200).json(data);
+        console.log("Respuesta exitosa");
+
+    }
+
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ Message: error })
+
+    }
 }
 
 const GetSingleDataInspeccion = async (req, res) => {

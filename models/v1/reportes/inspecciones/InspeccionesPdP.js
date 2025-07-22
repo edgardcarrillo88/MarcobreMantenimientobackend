@@ -1,6 +1,6 @@
 
 const mongoose = require('mongoose')
-
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const FilesSchema = new mongoose.Schema({
     name: String,
@@ -39,6 +39,7 @@ const InspeccionesPdPschema = new mongoose.Schema({
 }
 );
 
+InspeccionesPdPschema.plugin(mongoosePaginate);
 
 const InspeccionesPdP = mongoose.model('InspeccionesPdP',InspeccionesPdPschema, 'InspeccionesPdP')
 module.exports = InspeccionesPdP
