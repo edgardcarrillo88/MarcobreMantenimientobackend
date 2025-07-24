@@ -3176,7 +3176,7 @@ const CrearInspeccion = async (req, res) => {
 
             await s3Client.send(new PutObjectCommand(bucketParams));
 
-            const fileUrl = `${process.env.DIGITAL_OCEAN_PUBLIC_URL}/${fileName}`;
+            const fileUrl = `${process.env.DIGITAL_OCEAN_PUBLIC_URL_INSPECCIONESPDP}/${fileName}`;
             uploadedFiles.push({
                 name: file.name,
                 lastModified: file.lastModified,
@@ -3224,10 +3224,10 @@ const GetAllDataInspeccion = async (req, res) => {
             query.empresa = { $regex: req.query.empresa, $options: 'i' }; // 'i' para hacer la búsqueda insensible a mayúsculas y minúsculas
         }
 
-        console.log("el real query: ", req.query)
+        // console.log("el real query: ", req.query)
 
         const data = await inspeccionesmodel.paginate(query, { page, limit });
-        console.log("Datos obtenidos: ", data);
+        // console.log("Datos obtenidos: ", data);
         res.status(200).json(data);
         console.log("Respuesta exitosa");
 

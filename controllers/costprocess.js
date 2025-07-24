@@ -677,11 +677,11 @@ const LoadSpCompromisos = async (req, res) => {
 
   const dataPromises = excelData.map(async (rowData) => {
     try {
-      const fechainicio = new Date((rowData.Fecha - 25569) * 86400 * 1000);
-      fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
-      rowData.Fecha = fechainicio;
+      // const fechainicio = new Date((rowData.Fecha - 25569) * 86400 * 1000);
+      // fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
+      // rowData.Fecha = fechainicio;
 
-      const data = new occompromisosModel(rowData);
+      const data = new partidasModel(rowData);
       await data.save();
 
     } catch (error) {
@@ -737,6 +737,14 @@ const ProcessCompromisosData = async (req, res) => {
   try {
 
     const data = await partidasModel.aggregate([
+
+
+      {
+        $match: {
+          deleted: false // Aquí va tu filtro
+        }
+      },
+
       {
         $group: {
           _id: {
@@ -908,7 +916,7 @@ const ProcessCompromisosData = async (req, res) => {
     ]);
 
 
-    console.log(data.filter((item) => item.partida === "MPLT-207"));
+    console.log(data.filter((item) => item.partida === "MPLT-420"));
 
     res.status(200).json({ data, dataSP, dataOC });
   } catch (error) {
@@ -917,7 +925,26 @@ const ProcessCompromisosData = async (req, res) => {
   }
 }
 
+const UpdatePartidasCompromisos = async (req, res) => {
+  console.log("Actualizando partidas de compromisos");
+  try {
+    const response = await partidasModel.updateMany(
+      { deleted: false },
+      {
+        $set: {
+          deleted: true,
+        }
+      }
+    );
+    res.status(200).json({ Message: "Actualización de partidas de compromisos realizada" });
+
+  } catch (error) {
+    res.status(500).json({ Message: "Error al actualizar las partidas de compromisos", error })
+  }
+}
+
 module.exports = {
+  UpdatePartidasCompromisos,
   uploadexcel,
   getalldataactual,
   getalldatabudget,

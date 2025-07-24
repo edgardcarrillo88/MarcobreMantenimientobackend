@@ -46,6 +46,7 @@ costrouter.get('/getallspcompromisos',Upload.single('file'),costcontroller.GetAl
 costrouter.get('/getalloccompromisos',Upload.single('file'),costcontroller.GetAllOCCompromisos)
 costrouter.get('/getallpartidascompromisos',Upload.single('file'),costcontroller.GetAllPartidasCompromisos)
 costrouter.get('/getprocesscompromisosdata',Upload.single('file'),costcontroller.ProcessCompromisosData)
+costrouter.get('/updatepartidascompromisos',costcontroller.UpdatePartidasCompromisos)
 
 
 

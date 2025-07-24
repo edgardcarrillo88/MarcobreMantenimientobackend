@@ -6,6 +6,7 @@ const partidascompromisosschema = mongoose.Schema({
     DescripcionPartida: String,
     Especialidad: String,
     Monto: Number,
+    Presupuesto: String,
     
     deleted: { type: Boolean, default: false }
 },
