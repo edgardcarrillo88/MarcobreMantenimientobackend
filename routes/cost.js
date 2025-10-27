@@ -42,6 +42,7 @@ costrouter.post('/updatestatusprovisiones',costcontroller.UpdateStatusProvisione
 
 //Compromisos Partidas
 costrouter.post('/loadspcompromisos',Upload.single('file'),costcontroller.LoadSpCompromisos)
+costrouter.post('/borrarmasivodatacompromisos',Upload.single('file'),costcontroller.DeleteMassive)
 costrouter.get('/getallspcompromisos',Upload.single('file'),costcontroller.GetAllSPCompromisos)
 costrouter.get('/getalloccompromisos',Upload.single('file'),costcontroller.GetAllOCCompromisos)
 costrouter.get('/getallpartidascompromisos',Upload.single('file'),costcontroller.GetAllPartidasCompromisos)

@@ -14,7 +14,7 @@ const updatemodel = require('../models/updates')
 const Induccionmodel = require('../models/induccionPdP')
 const PersonalContratistamodel = require('../models/personalcontratistas')
 const EvaluacionPdPmodel = require('../models/evaluacionpdp')
-const UserModel = require('../models/ParadaPlanta/users/users')
+const UserModel = require('../models/v1/users/users')
 
 const HabitacionesModel = require("../models/ParadaPlanta/Habilitaciones/Habitaciones")
 

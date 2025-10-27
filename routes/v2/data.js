@@ -16,6 +16,7 @@ datarouter.get('/especialidad',datacontroller.GetEspecialidad)
 datarouter.put('/updatestatus',datacontroller.statusupdate)
 datarouter.get('/filtereddata',datacontroller.filtereddata)
 datarouter.put('/updatedata',datacontroller.updatedata)
+datarouter.post('/massiveupdate',Upload.single('file'),datacontroller.MassiveUpdate)
 
 datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
 datarouter.post('/updatevalidation',datacontroller.UpdateValidation)

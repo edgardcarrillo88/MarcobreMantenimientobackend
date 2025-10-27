@@ -741,7 +741,8 @@ const ProcessCompromisosData = async (req, res) => {
 
       {
         $match: {
-          deleted: false // Aquí va tu filtro
+          // deleted: false, // Aquí va tu filtro
+          Presupuesto: "Q3"
         }
       },
 
@@ -776,7 +777,7 @@ const ProcessCompromisosData = async (req, res) => {
                 IndicadorBorrado: "false",
                 Concluida: { $ne: "X" },
                 Periodo: 2025,
-                Forecast: "Q0"
+                // Forecast: "Q0"
               }
             }
           ],
@@ -870,7 +871,7 @@ const ProcessCompromisosData = async (req, res) => {
           IndicadorBorrado: "false",
           Concluida: { $ne: "X" },
           Periodo: 2025,
-          Forecast: "Q0",
+          // Forecast: "Q0",
         },
       },
       {
@@ -916,7 +917,8 @@ const ProcessCompromisosData = async (req, res) => {
     ]);
 
 
-    console.log(data.filter((item) => item.partida === "MPLT-420"));
+    // console.log(data.filter((item) => item.partida === "MPLT-420"));
+    console.log(dataOC.filter((item) => item.Partida === "MPLT-208"));
 
     res.status(200).json({ data, dataSP, dataOC });
   } catch (error) {
@@ -941,6 +943,36 @@ const UpdatePartidasCompromisos = async (req, res) => {
   } catch (error) {
     res.status(500).json({ Message: "Error al actualizar las partidas de compromisos", error })
   }
+}
+
+const DeleteMassive = async (req,res) => {
+  console.log("Borrando masivo data compromisos");
+  const bufferData = req.file.buffer;
+  const workbook = xlsx.read(bufferData, { type: "buffer" });
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const excelData = xlsx.utils.sheet_to_json(worksheet);
+
+  const dataPromises = excelData.map(async (rowData) => {
+    try {
+
+      
+      const response = await occompromisosModel.deleteMany({ _id: rowData._id });
+
+
+    } catch (error) {
+      console.error('Error al borrar el dato:', error);
+    }
+  });
+  Promise.all(dataPromises)
+    .then(() => {
+      console.log('Todos los datos borrados en la base de datos');
+      res.status(200).json({ message: 'Datos borrados en la base de datos' });
+    })
+    .catch((error) => {
+      console.error('Error al borrar los datos:', error);
+      res.status(500).json({ error: 'Error al borrar los datos' });
+    })
+
 }
 
 module.exports = {
@@ -976,5 +1008,6 @@ module.exports = {
   GetAllSPCompromisos,
   GetAllOCCompromisos,
   GetAllPartidasCompromisos,
-  ProcessCompromisosData
+  ProcessCompromisosData,
+  DeleteMassive
 };

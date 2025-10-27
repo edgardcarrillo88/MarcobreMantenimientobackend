@@ -7,6 +7,7 @@ const whatsappEndpoint =
 const accessToken = process.env.WHATSAPP_TOKEN;
 
 const verifyWebhook = async (req, res) => {
+  console.log("Holi");
   const mode = req.query["hub.mode"];
   const verify_token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -116,8 +117,11 @@ const WhatsappTemplate = async (
 };
 
 const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
+
+  console.log("Buscando celular registrado");
   const userresponse = await userModel.findOne({ celular: from });
-  const empresa = userresponse.empresa;
+  const empresa = userresponse?.empresa;
+  console.log("Empresa: ", empresa);
 
   if (!userresponse) {
     console.log("Usuario no registrado");
@@ -276,10 +280,6 @@ const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
                 type: "reply",
                 reply: { id: "PdPopcion3", title: "Reporte Empresa" },
               },
-              // {
-              //   type: "reply",
-              //   reply: { id: "PdPopcion4", title: "Menu Principal" },
-              // },
             ],
           },
         },
@@ -318,10 +318,7 @@ const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
                 type: "reply",
                 reply: { id: "KPIopcion3", title: "Reporte General" },
               },
-              // {
-              //   type: "reply",
-              //   reply: { id: "KPIopcion4", title: "Menu Principal" },
-              // },
+
             ],
           },
         },
