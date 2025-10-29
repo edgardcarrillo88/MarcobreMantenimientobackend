@@ -393,7 +393,6 @@ const MassiveUpdate = async (req, res) => {
     const dataPromises = await Promise.all(
       excelData.map(async (rowData) => {
         try {
-
           // console.log(rowData);
 
           const fechainicio = new Date(
@@ -449,39 +448,47 @@ const MassiveUpdate = async (req, res) => {
             rowData.comentarios?.[0] === "+" &&
             rowData.comentarios?.[0] === "="
           ) {
-            rowData.Errors.push("Comentarios vacíos o con caracteres prohibidos");
+            rowData.Errors.push(
+              "Comentarios vacíos o con caracteres prohibidos"
+            );
           }
 
+          const inicio = new Date(rowData.inicioreal);
+          const fin = new Date(rowData.finreal);
+
+          const isInicioValido = inicio instanceof Date && !isNaN(inicio);
+          const isFinValido = fin instanceof Date && !isNaN(fin);
+
           if (
-            rowData.inicioreal > rowData.finreal ||
-            (rowData.finreal && !rowData.inicioreal) ||
-            (Number(rowData.avance) > 0 && !rowData.inicioreal) ||
+            (isInicioValido && isFinValido && inicio > fin) || // inicio después de fin
+            (isFinValido && !isInicioValido) || // hay fin pero no inicio
+            (Number(rowData.avance) > 0 && !isInicioValido) || // hay avance pero no inicio
             (Number(rowData.avance) === 100 &&
-              !rowData.finreal &&
-              !rowData.inicioreal)
+              (!isFinValido || !isInicioValido)) // avance 100 pero falta alguna fecha
           ) {
             rowData.Errors.push("Errores en las fechas de inicio y/o fin");
           }
 
-          if(
+          if (
             isNaN(Number(rowData.Mecanicos)) ||
             isNaN(Number(rowData.Soldadores)) ||
-            isNaN(Number(rowData.Vigias)) || 
+            isNaN(Number(rowData.Vigias)) ||
             isNaN(Number(rowData.Electricista)) ||
             isNaN(Number(rowData.Instrumentista))
-         ){
-            rowData.Errors.push("Valores no numéricos en los campos Mecanicos, Soldadores, Vigias, Electricista o Instrumentista");
+          ) {
+            rowData.Errors.push(
+              "Valores no numéricos en los campos Mecanicos, Soldadores, Vigias, Electricista o Instrumentista"
+            );
           }
 
-          if(
+          if (
             typeof rowData.Andamios !== "boolean" &&
             typeof rowData.Andamios !== "boolean" &&
             typeof rowData.CamionGrua !== "boolean" &&
             typeof rowData.CamionGrua !== "boolean" &&
             typeof rowData.Telescopica !== "boolean" &&
             typeof rowData.Telescopica !== "boolean"
-          ){
-
+          ) {
           }
 
           if (rowData.Errors.length > 0) {
@@ -492,7 +499,7 @@ const MassiveUpdate = async (req, res) => {
 
           return rowData;
         } catch (error) {
-          console.log(rowData.id)
+          console.log(rowData.id);
           console.error("Error al guardar el dato:", error);
           return null;
         }
