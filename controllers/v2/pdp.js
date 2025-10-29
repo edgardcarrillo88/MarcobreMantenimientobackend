@@ -393,77 +393,106 @@ const MassiveUpdate = async (req, res) => {
     const dataPromises = await Promise.all(
       excelData.map(async (rowData) => {
         try {
-        const fechainicio = new Date(
-          (rowData.inicioreal - 25569) * 86400 * 1000
-        );
-        fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
-        rowData.inicioreal = fechainicio;
 
-        const fechafin = new Date((rowData.finreal - 25569) * 86400 * 1000);
-        fechafin.setMilliseconds(fechafin.getMilliseconds() + 100);
-        rowData.finreal = fechafin;
+          // console.log(rowData);
 
-        if (!mongoose.Types.ObjectId.isValid(rowData._id)) {
-          rowData.Errors = ["ID inválido"];
-          rowData.Message = "ID inválido";
-          rowData.isValid = false;
-          return rowData;
-        }
-
-        const response = await taskmodel.findById(rowData._id);
-
-        if (!response) {
-          rowData.Errors = ["Actividad no encontrada"];
-          rowData.Message = "Actividad no encontrada";
-          rowData.isValid = false;
-
-          return rowData;
-          // return {
-          //   Message: "Actividad no encontrada",
-          //   isValid: false,
-          //   Errors: ["Actividad no encontrada"],
-          // };
-        }
-
-        rowData.Errors = [];
-
-        if (
-          isNaN(rowData.avance) ||
-          Number(rowData.avance) > 100 ||
-          Number(rowData.avance) < 0 ||
-          Number(rowData.avance) < Number(response.avance)
-        ) {
-          rowData.Errors.push(
-            `Avance inválido (Excel=${rowData.avance}, DB=${response.avance})`
+          const fechainicio = new Date(
+            (rowData.inicioreal - 25569) * 86400 * 1000
           );
-          // rowData.Message = `Avance inválido (Excel=${rowData.avance}, DB=${response.avance})`;
-        }
+          fechainicio.setMilliseconds(fechainicio.getMilliseconds() + 100);
+          rowData.inicioreal = fechainicio;
 
-        if (!rowData.comentarios?.trim()) {
-          rowData.Errors.push("Comentarios vacíos o no encontrados");
-          // rowData.Message = "Comentarios no encontrados";
-        }
+          const fechafin = new Date((rowData.finreal - 25569) * 86400 * 1000);
+          fechafin.setMilliseconds(fechafin.getMilliseconds() + 100);
+          rowData.finreal = fechafin;
 
-        if (
-          rowData.inicioreal > rowData.finreal ||
-          (rowData.finreal && !rowData.inicioreal) ||
-          (Number(rowData.avance) > 0 && !rowData.inicioreal) ||
-          (Number(rowData.avance) === 100 &&
-            !rowData.finreal &&
-            !rowData.inicioreal)
-        ) {
-          rowData.Errors.push("Errores en las fechas de inicio y/o fin");
-          // rowData.Message = "Errores en las fechas de inicio y/o fin";
-        }
+          if (!mongoose.Types.ObjectId.isValid(rowData._id)) {
+            rowData.Errors = ["ID inválido"];
+            rowData.Message = "ID inválido";
+            rowData.isValid = false;
+            return rowData;
+          }
 
-        if (rowData.Errors.length > 0) {
-          rowData.Message = rowData.Errors.join(" | ");
-        }
+          const response = await taskmodel.findById(rowData._id);
 
-        rowData.isValid = rowData.Errors.length === 0;
+          rowData.Errors = [];
 
-        return rowData;
+          if (!response) {
+            rowData.Errors = ["Actividad no encontrada"];
+            rowData.Message = "Actividad no encontrada";
+            rowData.isValid = false;
+
+            return rowData;
+          }
+
+          if (
+            isNaN(rowData.avance) ||
+            Number(rowData.avance) > 100 ||
+            Number(rowData.avance) < 0 ||
+            Number(rowData.avance) < Number(response.avance)
+          ) {
+            rowData.Errors.push(
+              `Avance inválido (Excel=${rowData.avance}, DB=${response.avance})`
+            );
+          }
+
+          if (
+            rowData.ActividadCancelada?.toLowerCase() !== "no" &&
+            rowData.ActividadCancelada?.toLowerCase() !== "si"
+          ) {
+            rowData.Errors.push("ActividadCancelada inválido");
+          }
+
+          if (
+            !String(rowData.comentarios).trim() &&
+            rowData.comentarios?.[0] === "-" &&
+            rowData.comentarios?.[0] === "+" &&
+            rowData.comentarios?.[0] === "="
+          ) {
+            rowData.Errors.push("Comentarios vacíos o con caracteres prohibidos");
+          }
+
+          if (
+            rowData.inicioreal > rowData.finreal ||
+            (rowData.finreal && !rowData.inicioreal) ||
+            (Number(rowData.avance) > 0 && !rowData.inicioreal) ||
+            (Number(rowData.avance) === 100 &&
+              !rowData.finreal &&
+              !rowData.inicioreal)
+          ) {
+            rowData.Errors.push("Errores en las fechas de inicio y/o fin");
+          }
+
+          if(
+            isNaN(Number(rowData.Mecanicos)) ||
+            isNaN(Number(rowData.Soldadores)) ||
+            isNaN(Number(rowData.Vigias)) || 
+            isNaN(Number(rowData.Electricista)) ||
+            isNaN(Number(rowData.Instrumentista))
+         ){
+            rowData.Errors.push("Valores no numéricos en los campos Mecanicos, Soldadores, Vigias, Electricista o Instrumentista");
+          }
+
+          if(
+            typeof rowData.Andamios !== "boolean" &&
+            typeof rowData.Andamios !== "boolean" &&
+            typeof rowData.CamionGrua !== "boolean" &&
+            typeof rowData.CamionGrua !== "boolean" &&
+            typeof rowData.Telescopica !== "boolean" &&
+            typeof rowData.Telescopica !== "boolean"
+          ){
+
+          }
+
+          if (rowData.Errors.length > 0) {
+            rowData.Message = rowData.Errors.join(" | ");
+          }
+
+          rowData.isValid = rowData.Errors.length === 0;
+
+          return rowData;
         } catch (error) {
+          console.log(rowData.id)
           console.error("Error al guardar el dato:", error);
           return null;
         }

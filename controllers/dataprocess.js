@@ -2138,8 +2138,9 @@ const updatetempReportIndicadores = async (req, res) => {
 
 const TemporalEliminarSemana = async (req, res) => {
 
-    console.log("Borrando datos de la semana ", req.query.Mes);
-    console.log(req.query.Mes);
+    console.log("Borrando datos de la semana ");
+    // console.log("Borrando datos de la semana ", req.query.Mes);
+    // console.log(req.query.Mes);
 
 
     try {
@@ -2150,19 +2151,16 @@ const TemporalEliminarSemana = async (req, res) => {
         //iw29reportmodel
 
         // await iw39reportmodel.deleteMany({
-        //     Semana: req.query.Mes,
-        //     Material: { $exists: true }
+        //     Semana: "41",
+        //     Anho: { $exists: false }
         // });
 
-        const data = await iw39reportmodel.deleteMany({
-            Semana: "15",
-            anho: "2025"
-        });
-
-        const data2 = await iw37nreportmodel.deleteMany({
-            Semana: "15",
-            anho: "2025"
-        });
+      //const response1 = await iw37nbasemodel.deleteMany({Semana: "46", Anho: { $exists: false }});
+      const response2 = await iw37nreportmodel.deleteMany({Semana: "46", Anho: "2025"});
+      const response3 = await iw39reportmodel.deleteMany({Semana: "46", Anho: "2025"});
+      const response4 = await iw29reportmodel.deleteMany({Semana: "46", Anho: "2025"});
+      const response5 = await iw47reportmodel.deleteMany({Semana: "46", Anho: "2025"});
+    //   console.log(response.length);
 
 
         console.log("Ok");
