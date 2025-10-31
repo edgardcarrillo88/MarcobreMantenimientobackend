@@ -439,18 +439,35 @@ const MassiveUpdate = async (req, res) => {
             rowData.ActividadCancelada?.toLowerCase() !== "no" &&
             rowData.ActividadCancelada?.toLowerCase() !== "si"
           ) {
-            rowData.Errors.push("ActividadCancelada inválido");
+            rowData.Errors.push("Actividad Cancelada inválido");
           }
 
           if (
-            !String(rowData.comentarios).trim() &&
-            rowData.comentarios?.[0] === "-" &&
-            rowData.comentarios?.[0] === "+" &&
+            !String(rowData.comentarios).trim() ||
+            rowData.comentarios?.[0] === "-" ||
+            rowData.comentarios?.[0] === "+" ||
             rowData.comentarios?.[0] === "="
           ) {
             rowData.Errors.push(
               "Comentarios vacíos o con caracteres prohibidos"
             );
+          }
+
+          console.log("id: ", rowData.id);
+          console.log(
+            "Actividad cancelada: ",
+            String(rowData.comentarios).trim()
+          );
+
+          const comentarios = String(rowData.comentarios || "").trim();
+          const avance = Number(rowData.avance);
+          const fechaInicio = new Date(rowData.inicioreal);
+
+          if (
+            comentarios !== "" &&
+            (isNaN(avance) || avance === 0 || isNaN(fechaInicio.getTime()))
+          ) {
+            rowData.Errors.push("Comentarios sin avances o fechas");
           }
 
           const inicio = new Date(rowData.inicioreal);
@@ -482,13 +499,13 @@ const MassiveUpdate = async (req, res) => {
           }
 
           if (
-            typeof rowData.Andamios !== "boolean" &&
-            typeof rowData.Andamios !== "boolean" &&
-            typeof rowData.CamionGrua !== "boolean" &&
-            typeof rowData.CamionGrua !== "boolean" &&
-            typeof rowData.Telescopica !== "boolean" &&
+            typeof rowData.Andamios !== "boolean" ||
+            typeof rowData.CamionGrua !== "boolean" ||
             typeof rowData.Telescopica !== "boolean"
           ) {
+            rowData.Errors.push(
+              "Valores no booleanos en los campos Andamios, CamionGrua o Telescopica"
+            );
           }
 
           if (rowData.Errors.length > 0) {
@@ -507,7 +524,6 @@ const MassiveUpdate = async (req, res) => {
     );
 
     console.log("Todos los datos procesados");
-    console.log(dataPromises);
     res.status(200).json({
       message: "Datos procesados",
       datos: dataPromises,
