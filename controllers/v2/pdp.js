@@ -9,6 +9,7 @@ const updatemodel = require("../../models/v2/ParadaPlanta/Cronograma/updates");
 //Parada de Planta
 const uploadexcel = (req, res) => {
   console.log("ejecutando carga de datos de cronograma de parada de planta.");
+  console.log(req.body);
   const bufferData = req.file.buffer;
   const workbook = xlsx.read(bufferData, { type: "buffer" });
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -393,7 +394,6 @@ const MassiveUpdate = async (req, res) => {
     const dataPromises = await Promise.all(
       excelData.map(async (rowData) => {
         try {
-          // console.log(rowData);
 
           const fechainicio = new Date(
             (rowData.inicioreal - 25569) * 86400 * 1000
@@ -431,7 +431,7 @@ const MassiveUpdate = async (req, res) => {
             Number(rowData.avance) < Number(response.avance)
           ) {
             rowData.Errors.push(
-              `Avance inválido (Excel=${rowData.avance}, DB=${response.avance})`
+              `Avance inválido (Excel=${rowData.avance}, Base de datos=${response.avance})`
             );
           }
 
@@ -442,28 +442,25 @@ const MassiveUpdate = async (req, res) => {
             rowData.Errors.push("Actividad Cancelada inválido");
           }
 
+
           if (
             !String(rowData.comentarios).trim() ||
             rowData.comentarios?.[0] === "-" ||
             rowData.comentarios?.[0] === "+" ||
-            rowData.comentarios?.[0] === "="
+            rowData.comentarios?.[0] === "=" ||
+            rowData.comentarios === undefined
           ) {
             rowData.Errors.push(
               "Comentarios vacíos o con caracteres prohibidos"
             );
           }
 
-          console.log("id: ", rowData.id);
-          console.log(
-            "Actividad cancelada: ",
-            String(rowData.comentarios).trim()
-          );
-
           const comentarios = String(rowData.comentarios || "").trim();
           const avance = Number(rowData.avance);
           const fechaInicio = new Date(rowData.inicioreal);
 
           if (
+            rowData.ActividadCancelada?.toLowerCase() === "no" &&
             comentarios !== "" &&
             (isNaN(avance) || avance === 0 || isNaN(fechaInicio.getTime()))
           ) {
@@ -476,6 +473,14 @@ const MassiveUpdate = async (req, res) => {
           const isInicioValido = inicio instanceof Date && !isNaN(inicio);
           const isFinValido = fin instanceof Date && !isNaN(fin);
 
+          const hoy = new Date();
+
+          const unaSemanaAntes = new Date(hoy);
+          unaSemanaAntes.setDate(hoy.getDate() - 7);
+
+          const unaSemanaDespues = new Date(hoy);
+          unaSemanaDespues.setDate(hoy.getDate() + 7);
+
           if (
             (isInicioValido && isFinValido && inicio > fin) || // inicio después de fin
             (isFinValido && !isInicioValido) || // hay fin pero no inicio
@@ -484,6 +489,22 @@ const MassiveUpdate = async (req, res) => {
               (!isFinValido || !isInicioValido)) // avance 100 pero falta alguna fecha
           ) {
             rowData.Errors.push("Errores en las fechas de inicio y/o fin");
+          }
+
+          if (isInicioValido) {
+            if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
+              rowData.Errors.push(
+                "Fecha inicio fuera de rango (±7 días del día actual)"
+              );
+            }
+          }
+
+          if (isFinValido) {
+            if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
+              rowData.Errors.push(
+                "Fecha fin fuera de rango (±7 días del día actual)"
+              );
+            }
           }
 
           if (
@@ -498,10 +519,17 @@ const MassiveUpdate = async (req, res) => {
             );
           }
 
+          const isBooleanValue = (value) => {
+            if (typeof value === "boolean") return true;
+            if (typeof value !== "string") return false;
+            const v = value.trim().toLowerCase();
+            return v === "verdadero" || v === "falso";
+          };
+
           if (
-            typeof rowData.Andamios !== "boolean" ||
-            typeof rowData.CamionGrua !== "boolean" ||
-            typeof rowData.Telescopica !== "boolean"
+            !isBooleanValue(rowData.Andamios) ||
+            !isBooleanValue(rowData.CamionGrua) ||
+            !isBooleanValue(rowData.Telescopica)
           ) {
             rowData.Errors.push(
               "Valores no booleanos en los campos Andamios, CamionGrua o Telescopica"
@@ -523,11 +551,85 @@ const MassiveUpdate = async (req, res) => {
       })
     );
 
-    console.log("Todos los datos procesados");
-    res.status(200).json({
-      message: "Datos procesados",
-      datos: dataPromises,
-    });
+
+    const ValidationBoolean = (value) => {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "string") {
+        if (value.trim().toLowerCase() === "verdadero") return true;
+        if (value.trim().toLowerCase() === "falso") return false;
+      }
+    };
+
+
+
+    if (dataPromises.filter((item) => item.isValid === false).length > 0) {
+      console.log("Se proceso pero no se guardo");
+      res.status(200).json({
+        message: "Datos procesados",
+        datos: dataPromises,
+      });
+    } else {
+      await Promise.all(
+        excelData
+          .filter(
+            (item) =>
+              !(
+                Number(item.avance) === 0 &&
+                item.ActividadCancelada.toLowerCase() === "no"
+              )
+          )
+          .map(async (item) => {
+
+            const parseDate = (value) => {
+              const date = new Date(value);
+              return date instanceof Date && !isNaN(date) ? date : undefined;
+            };
+
+            const object = {
+              avance: Number(item.avance),
+              ActividadCancelada: String(item.ActividadCancelada),
+              comentarios: String(item.comentarios),
+              Labor: {
+                Mecanicos: Number(item.Mecanicos),
+                Soldadores: Number(item.Soldadores),
+                Vigias: Number(item.Vigias),
+                Electricista: Number(item.Electricista),
+                Instrumentista: Number(item.Instrumentista),
+              },
+              NoLabor: {
+                Andamios: ValidationBoolean(item.Andamios),
+                CamionGrua: ValidationBoolean(item.CamionGrua),
+                Telescopica: ValidationBoolean(item.Telescopica),
+              },
+            };
+
+            const fechaInicio = parseDate(item.inicioreal);
+            const fechaFin = parseDate(item.finreal);
+
+            if (fechaInicio instanceof Date && !isNaN(fechaInicio))
+              object.inicioreal = fechaInicio;
+            if (fechaFin instanceof Date && !isNaN(fechaFin))
+              object.finreal = fechaFin;
+
+            const objectId = { ...object };
+            objectId.id = item.id;
+
+            const updatedTask = await taskmodel.findByIdAndUpdate(
+              item._id,
+              {
+                $set: object,
+              },
+              { new: true }
+            );
+            //------------------------------------------------------
+            await updatemodel.create(objectId);
+            //------------------------------------------------------
+            return updatedTask;
+          })
+      );
+      console.log("Se guardaron los datos");
+      res.status(200).json({ message: "Datos Guardados", datos: [] });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error al actualizar las actividades" });
