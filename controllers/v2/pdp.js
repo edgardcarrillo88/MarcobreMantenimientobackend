@@ -491,21 +491,21 @@ const MassiveUpdate = async (req, res) => {
             rowData.Errors.push("Errores en las fechas de inicio y/o fin");
           }
 
-          if (isInicioValido) {
-            if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
-              rowData.Errors.push(
-                "Fecha inicio fuera de rango (±7 días del día actual)"
-              );
-            }
-          }
+          // if (isInicioValido) {
+          //   if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
+          //     rowData.Errors.push(
+          //       "Fecha inicio fuera de rango (±7 días del día actual)"
+          //     );
+          //   }
+          // }
 
-          if (isFinValido) {
-            if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
-              rowData.Errors.push(
-                "Fecha fin fuera de rango (±7 días del día actual)"
-              );
-            }
-          }
+          // if (isFinValido) {
+          //   if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
+          //     rowData.Errors.push(
+          //       "Fecha fin fuera de rango (±7 días del día actual)"
+          //     );
+          //   }
+          // }
 
           if (
             isNaN(Number(rowData.Mecanicos)) ||

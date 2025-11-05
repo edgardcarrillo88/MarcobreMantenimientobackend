@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const HistoryActivitiesschema = mongoose.Schema(
   {
-    // id: String,
     id: Number,
     inicioreal: Date,
     finreal: Date,
@@ -22,10 +21,8 @@ const HistoryActivitiesschema = mongoose.Schema(
       CamionGrua: { type: Boolean, default: false },
       Telescopica: { type: Boolean, default: false },
     },
-    // vigente: String,
-    // Validado: String,
     deleted: { type: Boolean, default: false },
-  },
+},
   {
     timestamps: true,
   }

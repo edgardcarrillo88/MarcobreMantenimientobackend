@@ -284,7 +284,6 @@ const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
           },
         },
       },
-
       opcion2: {
         messaging_product: "whatsapp",
         to: from,
@@ -362,6 +361,7 @@ const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
           message.slice(0, 3) !== "PdP" &&
           empresa.toLowerCase() !== "marcobre"
         ) {
+          console.log("Ejecutnado if");
           console.log("Usuario no autorizado");
           const NoAuthorizedPayload = {
             messaging_product: "whatsapp",
@@ -383,6 +383,8 @@ const FunctionResponseMessage = async (from, message, name, wa_id, type) => {
             }
           );
         } else {
+          console.log("Ejecutando else");
+          console.log(message);
           const selectedPayload = payloads[message] || {
             messaging_product: "whatsapp",
             to: from,
