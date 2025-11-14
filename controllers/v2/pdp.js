@@ -120,7 +120,7 @@ const statusupdate = async (req, res) => {
     const fechafinbd = new Date(task.finplan);
     const fechafrontend = new Date(fechacorregida);
 
-    if (!task.inicioreal) {
+    if (!task.inicioreal && String(task.ActividadCancelada).trim().toLocaleLowerCase()==="no") {
       // console.log("No iniciado");
 
       const data = await taskmodel.findByIdAndUpdate(task._id, {
@@ -130,7 +130,7 @@ const statusupdate = async (req, res) => {
       });
     }
 
-    if (fechafrontend > fechainiciobd && task.avance > 0 && task.avance < 100) {
+    if (fechafrontend > fechainiciobd && task.avance > 0 && task.avance < 100 && String(task.ActividadCancelada).trim().toLocaleLowerCase()==="no") {
       // console.log("tarea atrasada");
       const data = await taskmodel.findByIdAndUpdate(task._id, {
         $set: {
@@ -139,7 +139,7 @@ const statusupdate = async (req, res) => {
       });
     }
 
-    if (fechafrontend > fechainiciobd && task.avance === 0) {
+    if (fechafrontend > fechainiciobd && task.avance === 0 && String(task.ActividadCancelada).trim().toLocaleLowerCase()==="no") {
       // console.log("tarea atrasada");
       const data = await taskmodel.findByIdAndUpdate(task._id, {
         $set: {
@@ -148,7 +148,7 @@ const statusupdate = async (req, res) => {
       });
     }
 
-    if (fechafrontend > fechafinbd && task.avance !== 100) {
+    if (fechafrontend > fechafinbd && task.avance !== 100 && String(task.ActividadCancelada).trim().toLocaleLowerCase()==="no") {
       // console.log("tarea atrasada");
       const data = await taskmodel.findByIdAndUpdate(task._id, {
         $set: {
@@ -157,7 +157,7 @@ const statusupdate = async (req, res) => {
       });
     }
 
-    if (task.avance === 100) {
+    if (task.avance === 100 && String(task.ActividadCancelada).trim().toLocaleLowerCase()==="no") {
       // console.log("Finalizado");
       const data = await taskmodel.findByIdAndUpdate(task._id, {
         $set: {
@@ -165,6 +165,17 @@ const statusupdate = async (req, res) => {
         },
       });
     }
+
+       if (String(task.ActividadCancelada).trim().toLocaleLowerCase()==="si") {
+      // console.log("Finalizado");
+      const data = await taskmodel.findByIdAndUpdate(task._id, {
+        $set: {
+          estado: "Cancelado",
+        },
+      });
+    }
+
+
   });
 };
 
@@ -388,13 +399,34 @@ const MassiveUpdate = async (req, res) => {
     console.log("Ejecutando la actualización masiva de actividades");
     const bufferData = req.file.buffer;
     const workbook = xlsx.read(bufferData, { type: "buffer" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = xlsx.utils.sheet_to_json(worksheet);
+    //const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const worksheet = workbook.Sheets["ReportePdP"];
+
+    const excelData = xlsx.utils.sheet_to_json(worksheet).filter((item) => {
+      try {
+        return !(
+          Number(item.avance) == 0 &&
+          item.ActividadCancelada.toLowerCase() === "no" &&
+          String(item.comentarios || "").trim() === "" &&
+          String(item.inicioreal || "").trim() === "" &&
+          String(item.finreal || "").trim() === "" &&
+          Number(item.Mecanicos) == 0 &&
+          Number(item.Soldadores) == 0 &&
+          Number(item.Vigias) == 0 &&
+          Number(item.Electricista) == 0 &&
+          Number(item.Instrumentista) == 0 &&
+          String(item.Andamios).trim().toLowerCase() === "false" &&
+          String(item.CamionGrua).trim().toLowerCase() === "false" &&
+          String(item.Telescopica).trim().toLowerCase() === "false"
+        );
+      } catch (error) {
+        return true;
+      }
+    });
 
     const dataPromises = await Promise.all(
       excelData.map(async (rowData) => {
         try {
-
           const fechainicio = new Date(
             (rowData.inicioreal - 25569) * 86400 * 1000
           );
@@ -414,6 +446,8 @@ const MassiveUpdate = async (req, res) => {
 
           const response = await taskmodel.findById(rowData._id);
 
+          console.log(rowData);
+
           rowData.Errors = [];
 
           if (!response) {
@@ -431,7 +465,7 @@ const MassiveUpdate = async (req, res) => {
             Number(rowData.avance) < Number(response.avance)
           ) {
             rowData.Errors.push(
-              `Avance inválido (Excel=${rowData.avance}, Base de datos=${response.avance})`
+              `Columna Avance (G): Avance inválido (Excel=${rowData.avance}, Base de datos=${response.avance})`
             );
           }
 
@@ -439,9 +473,10 @@ const MassiveUpdate = async (req, res) => {
             rowData.ActividadCancelada?.toLowerCase() !== "no" &&
             rowData.ActividadCancelada?.toLowerCase() !== "si"
           ) {
-            rowData.Errors.push("Actividad Cancelada inválido");
+            rowData.Errors.push(
+              "Columna Actividad cancelada (K): Actividad Cancelada inválido"
+            );
           }
-
 
           if (
             !String(rowData.comentarios).trim() ||
@@ -451,7 +486,7 @@ const MassiveUpdate = async (req, res) => {
             rowData.comentarios === undefined
           ) {
             rowData.Errors.push(
-              "Comentarios vacíos o con caracteres prohibidos"
+              "Columna Comentarios (L): Comentarios vacíos o con caracteres prohibidos"
             );
           }
 
@@ -464,7 +499,9 @@ const MassiveUpdate = async (req, res) => {
             comentarios !== "" &&
             (isNaN(avance) || avance === 0 || isNaN(fechaInicio.getTime()))
           ) {
-            rowData.Errors.push("Comentarios sin avances o fechas");
+            rowData.Errors.push(
+              "Columna Fechas (M y N): Comentarios sin avances o fechas"
+            );
           }
 
           const inicio = new Date(rowData.inicioreal);
@@ -488,7 +525,15 @@ const MassiveUpdate = async (req, res) => {
             (Number(rowData.avance) === 100 &&
               (!isFinValido || !isInicioValido)) // avance 100 pero falta alguna fecha
           ) {
-            rowData.Errors.push("Errores en las fechas de inicio y/o fin");
+            rowData.Errors.push(
+              "Columna Fechas (M y N): Errores en las fechas de inicio y/o fin"
+            );
+          }
+
+          if (Number(rowData.avance) < 100 && isFinValido) {
+            rowData.Errors.push(
+              "Columna Avance (G): Tiene fecha fin, pero avance menor a 100%"
+            );
           }
 
           // if (isInicioValido) {
@@ -515,7 +560,7 @@ const MassiveUpdate = async (req, res) => {
             isNaN(Number(rowData.Instrumentista))
           ) {
             rowData.Errors.push(
-              "Valores no numéricos en los campos Mecanicos, Soldadores, Vigias, Electricista o Instrumentista"
+              "Columnas Labor (O, P, Q, R, S): Valores no numéricos en los campos Mecanicos, Soldadores, Vigias, Electricista o Instrumentista"
             );
           }
 
@@ -532,7 +577,7 @@ const MassiveUpdate = async (req, res) => {
             !isBooleanValue(rowData.Telescopica)
           ) {
             rowData.Errors.push(
-              "Valores no booleanos en los campos Andamios, CamionGrua o Telescopica"
+              "Columnas No Labor (T, U, V): Valores no booleanos en los campos Andamios, CamionGrua o Telescopica"
             );
           }
 
@@ -551,7 +596,6 @@ const MassiveUpdate = async (req, res) => {
       })
     );
 
-
     const ValidationBoolean = (value) => {
       if (typeof value === "boolean") return value;
       if (typeof value === "string") {
@@ -559,8 +603,6 @@ const MassiveUpdate = async (req, res) => {
         if (value.trim().toLowerCase() === "falso") return false;
       }
     };
-
-
 
     if (dataPromises.filter((item) => item.isValid === false).length > 0) {
       console.log("Se proceso pero no se guardo");
@@ -579,7 +621,6 @@ const MassiveUpdate = async (req, res) => {
               )
           )
           .map(async (item) => {
-
             const parseDate = (value) => {
               const date = new Date(value);
               return date instanceof Date && !isNaN(date) ? date : undefined;
@@ -628,6 +669,19 @@ const MassiveUpdate = async (req, res) => {
           })
       );
       console.log("Se guardaron los datos");
+
+      const tempObject = {
+        fechaActual: new Date().toISOString()
+      }
+        
+
+      const fakeRes = {
+        status: (code) => ({
+          json: (data) => console.log("Response:", code, data),
+        }),
+      };
+
+      statusupdate({ body: tempObject }, fakeRes);
       res.status(200).json({ message: "Datos Guardados", datos: [] });
     }
   } catch (error) {
