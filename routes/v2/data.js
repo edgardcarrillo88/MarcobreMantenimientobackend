@@ -21,6 +21,8 @@ datarouter.post('/massiveupdate',Upload.single('file'),datacontroller.MassiveUpd
 datarouter.get('/gettaskupdates',datacontroller.GetValidationData)
 datarouter.post('/updatevalidation',datacontroller.UpdateValidation)
 
+datarouter.post("/updatedateactivities",datacontroller.updateDatesActivities)
+
 
 
 

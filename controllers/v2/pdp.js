@@ -690,6 +690,70 @@ const MassiveUpdate = async (req, res) => {
   }
 };
 
+const updateDatesActivities = async (req,res) =>{
+
+  const response = await taskmodel.updateMany(
+  {},
+  [
+    {
+      $set: {
+        inicioplan: {
+          $dateFromParts: {
+            year: 2025,
+            month: { $month: "$inicioplan" },
+            day: { $dayOfMonth: "$inicioplan" },
+            hour: { $hour: "$inicioplan" },
+            minute: { $minute: "$inicioplan" },
+            second: { $second: "$inicioplan" },
+            millisecond: { $millisecond: "$inicioplan" }
+          }
+        },
+        finplan: {
+          $dateFromParts: {
+            year: 2025,
+            month: { $month: "$finplan" },
+            day: { $dayOfMonth: "$finplan" },
+            hour: { $hour: "$finplan" },
+            minute: { $minute: "$finplan" },
+            second: { $second: "$finplan" },
+            millisecond: { $millisecond: "$finplan" }
+          }
+        },
+        inicioreal: {
+          $dateFromParts: {
+            year: 2025,
+            month: { $month: "$inicioreal" },
+            day: { $dayOfMonth: "$inicioreal" },
+            hour: { $hour: "$inicioreal" },
+            minute: { $minute: "$inicioreal" },
+            second: { $second: "$inicioreal" },
+            millisecond: { $millisecond: "$inicioreal" }
+          }
+        },
+        finreal: {
+          $dateFromParts: {
+            year: 2025,
+            month: { $month: "$finreal" },
+            day: { $dayOfMonth: "$finreal" },
+            hour: { $hour: "$finreal" },
+            minute: { $minute: "$finreal" },
+            second: { $second: "$finreal" },
+            millisecond: { $millisecond: "$finreal" }
+          }
+        }
+      }
+    }
+  ]
+);
+
+res.status(200).json({"message":"Datos Actualizados"});
+
+}
+
+
+
+
+
 module.exports = {
   getfiltersdata,
   getscheduledata,
@@ -707,4 +771,5 @@ module.exports = {
   UpdateBaseLine,
   DeleteActivities,
   MassiveUpdate,
+  updateDatesActivities
 };

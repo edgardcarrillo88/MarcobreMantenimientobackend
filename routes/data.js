@@ -142,9 +142,17 @@ datarouter.get('/getallmaterial',datacontroller.GetAllMaterial)
 
 //Envío de mensajes
 datarouter.post('/prueba',controllerprueba.SendMessage)
-
-
 datarouter.post('/loadOTMensual',UploadExcel.single('file'),datacontroller.LoadOTMensual)
+
+
+//Metalurgia
+datarouter.post("/cargardatosmetalurgia",UploadExcel.single('file'),datacontroller.CargarDatosMetalurgia)
+datarouter.post("/deleteinputsmetalurgia",datacontroller.DeleteInputsMetalurgia)
+
+datarouter.post("/cargardatoscalibracionmetalurgia",UploadExcel.single('file'),datacontroller.CargarDatosCalibracionMetalurgia)
+datarouter.post("/deletecalibracionmetalurgia",datacontroller.DeleteCalibracionMetalurgia)
+
+
 
 
 
