@@ -648,9 +648,9 @@ const MassiveUpdate = async (req, res) => {
             const fechaFin = parseDate(item.finreal);
 
             if (fechaInicio instanceof Date && !isNaN(fechaInicio))
-              object.inicioreal = fechaInicio;
+              object.inicioreal = fechaInicio.setHours(fechaInicio.getHours()+5);
             if (fechaFin instanceof Date && !isNaN(fechaFin))
-              object.finreal = fechaFin;
+              object.finreal = fechaFin.setHours(fechaFin.getHours()+5);
 
             const objectId = { ...object };
             objectId.id = item.id;
