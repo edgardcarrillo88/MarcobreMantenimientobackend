@@ -513,10 +513,10 @@ const MassiveUpdate = async (req, res) => {
           const hoy = new Date();
 
           const unaSemanaAntes = new Date(hoy);
-          unaSemanaAntes.setDate(hoy.getDate() - 7);
+          unaSemanaAntes.setDate(hoy.getDate() -1);
 
           const unaSemanaDespues = new Date(hoy);
-          unaSemanaDespues.setDate(hoy.getDate() + 7);
+          unaSemanaDespues.setDate(hoy.getDate() + 1);
 
           if (
             (isInicioValido && isFinValido && inicio > fin) || // inicio después de fin
@@ -536,21 +536,21 @@ const MassiveUpdate = async (req, res) => {
             );
           }
 
-          // if (isInicioValido) {
-          //   if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
-          //     rowData.Errors.push(
-          //       "Fecha inicio fuera de rango (±7 días del día actual)"
-          //     );
-          //   }
-          // }
+          if (isInicioValido) {
+            if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
+              rowData.Errors.push(
+                "Fecha inicio fuera de rango (±1 días del día actual)"
+              );
+            }
+          }
 
-          // if (isFinValido) {
-          //   if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
-          //     rowData.Errors.push(
-          //       "Fecha fin fuera de rango (±7 días del día actual)"
-          //     );
-          //   }
-          // }
+          if (isFinValido) {
+            if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
+              rowData.Errors.push(
+                "Fecha fin fuera de rango (±1 días del día actual)"
+              );
+            }
+          }
 
           if (
             isNaN(Number(rowData.Mecanicos)) ||
