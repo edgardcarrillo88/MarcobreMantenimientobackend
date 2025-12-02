@@ -513,10 +513,10 @@ const MassiveUpdate = async (req, res) => {
           const hoy = new Date();
 
           const unaSemanaAntes = new Date(hoy);
-          unaSemanaAntes.setDate(hoy.getDate() -1);
+          unaSemanaAntes.setDate(hoy.getDate() -5);
 
           const unaSemanaDespues = new Date(hoy);
-          unaSemanaDespues.setDate(hoy.getDate() + 1);
+          unaSemanaDespues.setDate(hoy.getDate() + 5);
 
           if (
             (isInicioValido && isFinValido && inicio > fin) || // inicio después de fin
@@ -539,7 +539,7 @@ const MassiveUpdate = async (req, res) => {
           if (isInicioValido) {
             if (inicio < unaSemanaAntes || inicio > unaSemanaDespues) {
               rowData.Errors.push(
-                "Fecha inicio fuera de rango (±1 días del día actual)"
+                "Fecha inicio fuera de rango (±5 días del día actual)"
               );
             }
           }
@@ -547,7 +547,7 @@ const MassiveUpdate = async (req, res) => {
           if (isFinValido) {
             if (fin < unaSemanaAntes || fin > unaSemanaDespues) {
               rowData.Errors.push(
-                "Fecha fin fuera de rango (±1 días del día actual)"
+                "Fecha fin fuera de rango (±5 días del día actual)"
               );
             }
           }
