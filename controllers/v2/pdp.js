@@ -15,6 +15,9 @@ const uploadexcel = (req, res) => {
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
   const excelData = xlsx.utils.sheet_to_json(worksheet);
 
+
+  console.log(excelData);
+
   const dataPromises = excelData.map(async (rowData) => {
     try {
       const fechainicio = new Date((rowData.inicioplan - 25569) * 86400 * 1000);
@@ -28,6 +31,7 @@ const uploadexcel = (req, res) => {
       const data = new taskmodel(rowData);
       await data.save();
     } catch (error) {
+
       console.error("Error al guardar el dato:", error);
     }
   });
