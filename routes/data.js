@@ -112,6 +112,7 @@ datarouter.post('/deleteIW37nBaseSemana',datacontroller.DeleteDataIW37nBase)
 datarouter.post('/deleteindIW47Report',datacontroller.deleteallIW47)
 
 datarouter.get('/getalldataIndicadores',datacontroller.getalldataIndicadores)
+datarouter.get('/getalldataIndicadores2',datacontroller.getalldataIndicadores2)
 datarouter.get('/getalldataIW37nBase',datacontroller.getalldataIW37nBase)
 datarouter.get('/getalldataIW37Report',datacontroller.getalldataIW37nReport)
 datarouter.get('/getalldataIW39Report',datacontroller.getalldataIW39Report)

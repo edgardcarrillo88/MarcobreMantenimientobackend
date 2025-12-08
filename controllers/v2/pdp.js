@@ -478,7 +478,7 @@ const MassiveUpdate = async (req, res) => {
             rowData.ActividadCancelada?.toLowerCase() !== "si"
           ) {
             rowData.Errors.push(
-              "Columna Actividad cancelada (K): Actividad Cancelada inválido"
+              "Columna Actividad cancelada (M): Actividad Cancelada inválido"
             );
           }
 
@@ -490,7 +490,7 @@ const MassiveUpdate = async (req, res) => {
             rowData.comentarios === undefined
           ) {
             rowData.Errors.push(
-              "Columna Comentarios (L): Comentarios vacíos o con caracteres prohibidos"
+              "Columna Comentarios (N): Comentarios vacíos o con caracteres prohibidos"
             );
           }
 
@@ -504,7 +504,7 @@ const MassiveUpdate = async (req, res) => {
             (isNaN(avance) || avance === 0 || isNaN(fechaInicio.getTime()))
           ) {
             rowData.Errors.push(
-              "Columna Fechas (M y N): Comentarios sin avances o fechas"
+              "Columna Fechas (K y L): Comentarios sin avances o fechas"
             );
           }
 
@@ -530,7 +530,7 @@ const MassiveUpdate = async (req, res) => {
               (!isFinValido || !isInicioValido)) // avance 100 pero falta alguna fecha
           ) {
             rowData.Errors.push(
-              "Columna Fechas (M y N): Errores en las fechas de inicio y/o fin"
+              "Columna Fechas (K y L): Errores en las fechas de inicio y/o fin"
             );
           }
 

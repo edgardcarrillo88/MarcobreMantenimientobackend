@@ -30,6 +30,7 @@ const inspeccionesmodel = require("../models/v1/reportes/inspecciones/Inspeccion
 
 //Modelos Indicadores de Mantenimiento
 const baseindicadoresmodel = require("../models/baseindicadores");
+const baseindicadoresmodel2 = require("../models/criteriosindicadores");
 const iw37nbasemodel = require("../models/iw37nbase");
 const iw37nreportmodel = require("../models/iw37nreport");
 const iw39reportmodel = require("../models/iw39report");
@@ -1532,6 +1533,12 @@ const deleteallIW47 = async (req, res) => {
 const getalldataIndicadores = async (req, res) => {
   console.log("ejecutando get all data de Indicadores");
   const data = await baseindicadoresmodel.find({});
+  res.status(200).json(data);
+};
+
+const getalldataIndicadores2 = async (req, res) => {
+  console.log("ejecutando get all data de Indicadores");
+  const data = await baseindicadoresmodel2.find({});
   res.status(200).json(data);
 };
 
@@ -3297,6 +3304,7 @@ module.exports = {
   deleteallIW47,
 
   getalldataIndicadores,
+  getalldataIndicadores2,
   getalldataIW37nBase,
   getalldataIW37nReport,
   getalldataIW39Report,
